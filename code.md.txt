@@ -761,7 +761,7 @@ def main():
 
     print("\nСпасибо за игру в CHRONOSPIRE!")
     print("")
-```
 
 if __name__ == "__main__":
     main()
+```
