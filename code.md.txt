@@ -1,3 +1,4 @@
+```python
 import random
 import time
 import sys
@@ -761,6 +762,6 @@ def main():
     print("\nСпасибо за игру в CHRONOSPIRE!")
     print("")
 
-
 if __name__ == "__main__":
     main()
+```
