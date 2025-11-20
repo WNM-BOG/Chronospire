@@ -1,4 +1,4 @@
-``` python
+```python
 import random
 import time
 import sys
