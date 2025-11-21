@@ -1,3 +1,6 @@
+#Chronospire
+
+#Исходный Код:
 ```python
 import random
 import time
@@ -21,6 +24,10 @@ player_alive = True
 location_visited = [False] * 7
 game_difficulty = "средняя"
 final_boss_defeated = False
+
+# Добавляем переменные для экипировки
+equipped_weapon = None
+equipped_armor = None
 
 difficulty_multipliers = {
     "лёгкая": {"player_health": 1.5, "player_attack": 1.3, "player_defense": 1.3,
@@ -96,7 +103,7 @@ base_enemies = [
     {"name": "Страж Бездны", "health": 50, "attack": 15, "defense": 10, "exp": 50,
      "description": "Могучий страж, охраняющий врата Хроноспирали. Его доспехи сделаны из застывшего времени."},
     {"name": "Небесный Каратель", "health": 40, "attack": 20, "defense": 5, "exp": 60,
-     "description": "Крылатый воин, несущий гнев богов. Его клинок пронзает саму реальность."},
+     "description": "Крылатый воин, несущий гнев богов. Его клинок пронзает саму реальности."},
     {"name": "Хранитель Времени", "health": 60, "attack": 12, "defense": 15, "exp": 70,
      "description": "Древнее существо, контролирующее потоки времени. Может предвидеть ваши атаки."},
     {"name": "Бог Хронос", "health": 200, "attack": 30, "defense": 20, "exp": 0,
@@ -128,12 +135,14 @@ def show_title():
     print("=" * 80)
     print()
 
+
 def print_slow(text, min_delay=0.02, max_delay=0.05):
     """Функция для естественного посимвольного вывода со случайной задержкой"""
     for chr in text:
         print(chr, end='', flush=True)
         time.sleep(random.uniform(min_delay, max_delay))
     print()
+
 
 def show_intro():
     print_slow("Давным-давно, в эпоху рождения вселенной, боги времени установили свое владычество.")
@@ -224,8 +233,62 @@ def show_difficulty_info():
     input("\nНажмите Enter чтобы продолжить...")
 
 
+def get_total_attack():
+    """Возвращает общую атаку с учетом экипировки"""
+    total = player_attack
+    if equipped_weapon:
+        total += equipped_weapon["value"]
+    return total
+
+
+def get_total_defense():
+    """Возвращает общую защиту с учетом экипировки"""
+    total = player_defense
+    if equipped_armor and equipped_armor["effect"] == "defense":
+        total += equipped_armor["value"]
+    return total
+
+
+def get_total_dodge():
+    """Возвращает общее уклонение с учетом экипировки"""
+    total = player_dodge
+    if equipped_armor and equipped_armor["effect"] == "dodge":
+        total += equipped_armor["value"]
+    return total
+
+
+def show_player_stats():
+    """Показывает характеристики персонажа с учетом экипировки"""
+    print("\n" + "=" * 60)
+    print(f"ХАРАКТЕРИСТИКИ {player_name.upper()}")
+    print("=" * 60)
+    print(f"Класс: {player_class}")
+    print(f"Уровень: {player_level}")
+    print(f"Опыт: {player_exp}/{exp_to_next_level}")
+    print(f"Здоровье: {player_health}/{player_max_health}")
+    print(f"Атака: {get_total_attack()} (база: {player_attack})")
+    print(f"Защита: {get_total_defense()} (база: {player_defense})")
+    print(f"Уклонение: {get_total_dodge()}% (база: {player_dodge}%)")
+    print(f"Свободные очки характеристик: {player_stat_points}")
+
+    # Показываем экипировку
+    print(f"\nЭкипировка:")
+    print(f"  Оружие: {equipped_weapon['name'] if equipped_weapon else 'нет'}")
+    print(f"  Броня: {equipped_armor['name'] if equipped_armor else 'нет'}")
+
+    if player_inventory:
+        print("\nИнвентарь:")
+        for i, item in enumerate(player_inventory, 1):
+            print(f"  {i}: {item['name']} - {item['description']}")
+    else:
+        print("\nИнвентарь: пуст")
+
+    print("=" * 60)
+
+
 def create_character():
     global player_name, player_class, player_health, player_max_health, player_attack, player_defense, player_dodge
+    global equipped_weapon, equipped_armor
 
     print("\n" + "=" * 60)
     print(" " * 20 + "СОЗДАНИЕ ПЕРСОНАЖА")
@@ -268,7 +331,8 @@ def create_character():
         player_defense = int(base_defense * multiplier["player_defense"])
         player_dodge = base_dodge
 
-        player_inventory.append(items["меч_воина"])
+        # Экипируем меч воина сразу
+        equipped_weapon = items["меч_воина"]
         player_inventory.append(items["зелье_здоровья"])
 
     elif class_choice == "2":
@@ -284,7 +348,8 @@ def create_character():
         player_defense = int(base_defense * multiplier["player_defense"])
         player_dodge = base_dodge
 
-        player_inventory.append(items["посох_мага"])
+        # Экипируем посох мага сразу
+        equipped_weapon = items["посох_мага"]
         player_inventory.append(items["зелье_здоровья"])
         player_inventory.append(items["зелье_силы"])
 
@@ -301,7 +366,8 @@ def create_character():
         player_defense = int(base_defense * multiplier["player_defense"])
         player_dodge = base_dodge
 
-        player_inventory.append(items["плащ_теней"])
+        # Экипируем плащ теней сразу
+        equipped_armor = items["плащ_теней"]
         player_inventory.append(items["зелье_здоровья"])
 
     else:
@@ -318,35 +384,12 @@ def create_character():
         player_defense = int(base_defense * multiplier["player_defense"])
         player_dodge = base_dodge
 
-        player_inventory.append(items["меч_воина"])
+        equipped_weapon = items["меч_воина"]
         player_inventory.append(items["зелье_здоровья"])
 
     print(f"\nСоздан персонаж: {player_name} - {player_class}")
     print(f"Сложность: {game_difficulty}")
     show_player_stats()
-
-
-def show_player_stats():
-    print("\n" + "=" * 60)
-    print(f"ХАРАКТЕРИСТИКИ {player_name.upper()}")
-    print("=" * 60)
-    print(f"Класс: {player_class}")
-    print(f"Уровень: {player_level}")
-    print(f"Опыт: {player_exp}/{exp_to_next_level}")
-    print(f"Здоровье: {player_health}/{player_max_health}")
-    print(f"Атака: {player_attack}")
-    print(f"Защита: {player_defense}")
-    print(f"Уклонение: {player_dodge}%")
-    print(f"Свободные очки характеристик: {player_stat_points}")
-
-    if player_inventory:
-        print("\nИнвентарь:")
-        for i, item in enumerate(player_inventory, 1):
-            print(f"  {i}: {item['name']} - {item['description']}")
-    else:
-        print("\nИнвентарь: пуст")
-
-    print("=" * 60)
 
 
 def level_up():
@@ -462,8 +505,62 @@ def use_item():
         return False
 
 
+def equip_item():
+    """Функция для экипировки предметов"""
+    global equipped_weapon, equipped_armor
+
+    if not player_inventory:
+        print("Ваш инвентарь пуст! Найдите предметы в сундуках")
+        return False
+
+    print("\n" + "-" * 40)
+    print("ЭКИПИРОВКА ПРЕДМЕТОВ")
+    print("-" * 40)
+    for i, item in enumerate(player_inventory, 1):
+        print(f"{i}: {item['name']} - {item['description']}")
+    print("-" * 40)
+
+    try:
+        choice = int(input("Выберите предмет для экипировки (0 для отмены): "))
+        if choice == 0:
+            return False
+        elif 1 <= choice <= len(player_inventory):
+            item = player_inventory[choice - 1]
+
+            if item["type"] == "оружие":
+                # Снимаем предыдущее оружие
+                if equipped_weapon:
+                    player_inventory.append(equipped_weapon)
+                    print(f"Снято: {equipped_weapon['name']}")
+                # Экипируем новое оружие
+                equipped_weapon = item
+                player_inventory.remove(item)
+                print(f"Экипировано: {item['name']}")
+                return True
+
+            elif item["type"] == "броня":
+                # Снимаем предыдущую броню
+                if equipped_armor:
+                    player_inventory.append(equipped_armor)
+                    print(f"Снято: {equipped_armor['name']}")
+                # Экипируем новую броню
+                equipped_armor = item
+                player_inventory.remove(item)
+                print(f"Экипировано: {item['name']}")
+                return True
+            else:
+                print("Этот предмет нельзя экипировать!")
+                return False
+        else:
+            print("Неверный выбор! Пожалуйста, выберите номер из списка.")
+            return False
+    except ValueError:
+        print("Введите число, соответствующее номеру предмета!")
+        return False
+
+
 def calculate_damage():
-    damage = player_attack + random.randint(0, 5)
+    damage = get_total_attack() + random.randint(0, 5)
     if random.randint(1, 100) <= 10:
         damage = int(damage * 1.5)
         print("Критический удар! Урон увеличен на 50%!")
@@ -471,7 +568,7 @@ def calculate_damage():
 
 
 def calculate_defense():
-    return player_defense
+    return get_total_defense()
 
 
 def player_attack_enemy(enemy):
@@ -482,7 +579,7 @@ def player_attack_enemy(enemy):
 
 
 def enemy_attack_player(enemy):
-    if random.randint(1, 100) <= player_dodge:
+    if random.randint(1, 100) <= get_total_dodge():
         print("Вы увернулись от атаки врага!")
         return
 
@@ -509,11 +606,10 @@ def battle(enemy_index):
         print(f"\nВаше здоровье: {player_health}/{player_max_health}")
         print(f"Здоровье {enemy['name']}: {enemy['health']}")
 
-        # Ход игрока
         print("\nВыберите действие:")
         print("1: Атаковать (стандартная атака)")
         print("2: Использовать предмет (восстановить здоровье или усилить характеристики)")
-        print("3: Попытаться уклониться (шанс: {}%)".format(player_dodge))
+        print("3: Попытаться уклониться (шанс: {}%)".format(get_total_dodge()))
         print("4: Осмотреть противника (узнать характеристики врага)")
 
         choice = input("Ваш выбор (1-4): ")
@@ -526,7 +622,7 @@ def battle(enemy_index):
             else:
                 continue
         elif choice == "3":
-            dodge_success = random.randint(1, 100) <= player_dodge
+            dodge_success = random.randint(1, 100) <= get_total_dodge()
             if dodge_success:
                 print("Вы приготовились уворачиваться от следующей атаки!")
                 pass
@@ -658,7 +754,8 @@ def show_travel_options():
         print("3: Осмотреть текущую локацию еще раз")
         print("4: Посмотреть характеристики")
         print("5: Использовать предмет")
-        print("6: Распределить очки характеристик")
+        print("6: Экипировать предмет")
+        print("7: Распределить очки характеристик")
         print("0: Выйти из игры")
 
         choice = input("Ваш выбор: ")
@@ -677,6 +774,8 @@ def show_travel_options():
         elif choice == "5":
             use_item()
         elif choice == "6":
+            equip_item()
+        elif choice == "7":
             if player_stat_points > 0:
                 distribute_stat_points()
             else:
@@ -761,6 +860,7 @@ def main():
 
     print("\nСпасибо за игру в CHRONOSPIRE!")
     print("")
+
 
 if __name__ == "__main__":
     main()
