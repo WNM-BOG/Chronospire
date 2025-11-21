@@ -1,6 +1,6 @@
-Chronospire
+# Chronospire
 
-Исходный Код:
+## Исходный Код:
 ```python
 import random
 import time
