@@ -1,6 +1,6 @@
-#Chronospire
+Chronospire
 
-#Исходный Код:
+Исходный Код:
 ```python
 import random
 import time
@@ -24,8 +24,6 @@ player_alive = True
 location_visited = [False] * 7
 game_difficulty = "средняя"
 final_boss_defeated = False
-
-# Добавляем переменные для экипировки
 equipped_weapon = None
 equipped_armor = None
 
