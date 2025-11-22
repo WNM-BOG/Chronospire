@@ -137,22 +137,6 @@ def get_enemy(enemy_index):
 
     return enemy
 
-
-def print_centered(text, width=80):
-    lines = text.split('\n')
-    for line in lines:
-        print(line.center(width))
-
-
-def print_section_title(title, symbol="=", width=80):
-    print()
-    border = symbol * width
-    print(border)
-    print_centered(title, width)
-    print(border)
-    print()
-
-
 def show_title():
     print("=" * 80)
     print(" " * 32 + "ХРОНОСПИРАЛЬ")
@@ -188,7 +172,8 @@ def show_intro():
 def choose_difficulty():
     global game_difficulty
     time.sleep(0.2)
-    print("\n" + "=" * 60)
+    print()
+    print("=" * 60)
     time.sleep(0.2)
     print("\t" * 3 + "ВЫБОР СЛОЖНОСТИ")
     time.sleep(0.2)
@@ -235,7 +220,8 @@ def choose_difficulty():
 def show_difficulty_info():
     multiplier = difficulty_multipliers[game_difficulty]
 
-    print("\nНастройки сложности:")
+    print()
+    print("Настройки сложности:")
     print(f"\tЗдоровье игрока: {multiplier['player_health']}x")
     print(f"\tАтака игрока: {multiplier['player_attack']}x")
     print(f"\tЗащита игрока: {multiplier['player_defense']}x")
@@ -367,8 +353,6 @@ def create_character():
         player_attack = int(base_attack * multiplier["player_attack"])
         player_defense = int(base_defense * multiplier["player_defense"])
         player_dodge = base_dodge
-
-        # Экипируем посох мага сразу
         equipped_weapon = items["посох_мага"]
         player_inventory.append(items["зелье_здоровья"])
         player_inventory.append(items["зелье_силы"])
@@ -422,7 +406,7 @@ def level_up():
 
     print()
     print("★" * 60)
-    print(f"\t★ ДОСТИГНУТ УРОВЕНЬ {player_level}! ★")
+    print(f"\t" * 6 + "★ ДОСТИГНУТ УРОВЕНЬ {player_level}! ★")
     print("★" * 60)
     print("Ваше здоровье увеличено на 20 единиц!")
     print("Вы получили 5 очков характеристик!")
@@ -694,9 +678,9 @@ def shop():
         ("посох_мага", "Посох мага (300 золота) - +20 к атаке"),
         ("щит_защиты", "Щит защиты (250 золота) - +15 к защите"),
         ("эликсир_богов", "Эликсир богов (200 золота) - восстанавливает 200 HP"),
-        ("плащ_теней", "Плащ теней (350 золота) - +10% к уклонению"),
-        ("кольцо_могущества", "Кольцо могущества (600 золота) - +25 к атаке"),
-        ("артефакт_хаоса", "Артефакт Хаоса (1000 золота) - +40 к атаке")
+        ("плащ_теней", "Плащ теней (250 золота) - +10% к уклонению"),
+        ("кольцо_могущества", "Кольцо могущества (400 золота) - +25 к атаке"),
+        ("артефакт_хаоса", "Артефакт Хаоса (600 золота) - +40 к атаке")
     ]
 
     for i, (item_key, description) in enumerate(available_items, 1):
@@ -909,24 +893,21 @@ def show_travel_options():
         elif choice == "2" and current_location > 0:
             current_location -= 1
             break
-        elif choice == "3" and game_difficulty == "невозможная" and final_boss_defeated and not hidden_boss_defeated:
-            current_location = 7
-            break
-        elif choice == "4":
+        elif choice == "3":
             print("\nВы осматриваете локацию еще раз...")
             print(locations[current_location]['description'])
-        elif choice == "5":
+        elif choice == "4":
             show_player_stats()
-        elif choice == "6":
+        elif choice == "5":
             use_item()
-        elif choice == "7":
+        elif choice == "6":
             equip_item()
-        elif choice == "8":
+        elif choice == "7":
             if player_stat_points > 0:
                 distribute_stat_points()
             else:
                 print("У вас нет свободных очков характеристик для распределения.")
-        elif choice == "9":
+        elif choice == "8":
             shop()
         elif choice == "0":
             global game_running
@@ -970,9 +951,9 @@ def game_loop():
 
 
 def show_ending():
-    print("\n" + "★" * 80)
+    print("\n" + "★" * 38)
     print("\t" * 5 + "★ ПОБЕДА! ★")
-    print("★" * 80)
+    print("★" * 37)
     print_slow("\nВы стоите над поверженным телом Хроноса.")
     print_slow("Боги времени повержены. Их власть над вселенной разрушена.")
     print_slow("Вы отомстили за всё, что они сделали с вами и вашим народом.")
@@ -985,7 +966,7 @@ def show_ending():
     print_slow("В историю как имя того, кто бросил вызов богам и победил.")
     print_slow(f"\n{player_name}, вы вошли в легенду как спаситель вселенной!")
     print_slow("\nКонец игры.")
-    print("★" * 80)
+    print("★" * 38)
 
 
 def show_hidden_ending():
