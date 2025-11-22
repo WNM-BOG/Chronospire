@@ -1,7 +1,6 @@
 # Chronospire
-
+## Код для правок и улучшения функционала:
 ```python
-
 import random
 import time
 import sys
@@ -21,13 +20,13 @@ player_inventory = []
 current_location = 0
 game_running = True
 player_alive = True
-location_visited = [False] * 7
+location_visited = [False] * 8
 game_difficulty = "средняя"
 final_boss_defeated = False
-
-# Добавляем переменные для экипировки
+hidden_boss_defeated = False
 equipped_weapon = None
 equipped_armor = None
+player_gold = 100
 
 difficulty_multipliers = {
     "лёгкая": {"player_health": 1.5, "player_attack": 1.3, "player_defense": 1.3,
@@ -77,37 +76,48 @@ locations = [
         "name": "Престол Хроноса",
         "description": "Финальное испытание. Здесь вы встретитесь с верховным богом времени. Престол высечен из кристалла времени и парит в центре зала, окруженный вихрями временных потоков. Это место, где решается судьба вселенной.",
         "type": "финальный бой"
+    },
+    {
+        "name": "Измерение Забвения",
+        "description": "Скрытое измерение, доступное лишь тем, кто прошел невозможные испытания. Здесь обитает Первозданный Хаос - существо, существовавшее до рождения времени. Воздух наполнен первозданной энергией, а реальность искажается с каждым мгновением.",
+        "type": "скрытый бой",
+        "required_difficulty": "невозможная"
     }
 ]
 
 items = {
     "зелье_здоровья": {"name": "Зелье здоровья", "type": "зелье", "effect": "heal", "value": 50,
-                       "description": "Восстанавливает 50 единиц здоровья"},
+                       "description": "Восстанавливает 50 единиц здоровья", "price": 50},
     "зелье_силы": {"name": "Зелье силы", "type": "зелье", "effect": "attack", "value": 10,
-                   "description": "Увеличивает атаку на 10 до конца боя"},
+                   "description": "Увеличивает атаку на 10 до конца боя", "price": 75},
     "меч_воина": {"name": "Меч воина", "type": "оружие", "effect": "attack", "value": 15,
-                  "description": "Острое клинковое оружие, увеличивает атаку на 15"},
+                  "description": "Острое клинковое оружие, увеличивает атаку на 15", "price": 200},
     "посох_мага": {"name": "Посох мага", "type": "оружие", "effect": "attack", "value": 20,
-                   "description": "Древний посох, усиливающий магические способности, увеличивает атаку на 20"},
+                   "description": "Древний посох, усиливающий магические способности, увеличивает атаку на 20",
+                   "price": 300},
     "щит_защиты": {"name": "Щит защиты", "type": "броня", "effect": "defense", "value": 15,
-                   "description": "Прочный щит, увеличивает защиту на 15"},
+                   "description": "Прочный щит, увеличивает защиту на 15", "price": 250},
     "эликсир_богов": {"name": "Эликсир богов", "type": "зелье", "effect": "heal", "value": 200,
-                      "description": "Легендарный эликсир, восстанавливающий 200 единиц здоровья"},
+                      "description": "Легендарный эликсир, восстанавливающий 200 единиц здоровья", "price": 200},
     "плащ_теней": {"name": "Плащ теней", "type": "броня", "effect": "dodge", "value": 10,
-                   "description": "Плащ, сотканный из теней, увеличивает уклонение на 10%"},
+                   "description": "Плащ, сотканный из теней, увеличивает уклонение на 10%", "price": 350},
     "кольцо_могущества": {"name": "Кольцо могущества", "type": "оружие", "effect": "attack", "value": 25,
-                          "description": "Древнее кольцо, наделяющее владельца невероятной силой"}
+                          "description": "Древнее кольцо, наделяющее владельца невероятной силой", "price": 600},
+    "артефакт_хаоса": {"name": "Артефакт Хаоса", "type": "оружие", "effect": "attack", "value": 40,
+                       "description": "Древний артефакт, содержащий силу Первозданного Хаоса", "price": 1000}
 }
 
 base_enemies = [
-    {"name": "Страж Бездны", "health": 50, "attack": 15, "defense": 10, "exp": 50,
+    {"name": "Страж Бездны", "health": 50, "attack": 15, "defense": 10, "exp": 50, "gold": 25,
      "description": "Могучий страж, охраняющий врата Хроноспирали. Его доспехи сделаны из застывшего времени."},
-    {"name": "Небесный Каратель", "health": 40, "attack": 20, "defense": 5, "exp": 60,
+    {"name": "Небесный Каратель", "health": 40, "attack": 20, "defense": 5, "exp": 60, "gold": 30,
      "description": "Крылатый воин, несущий гнев богов. Его клинок пронзает саму реальности."},
-    {"name": "Хранитель Времени", "health": 60, "attack": 12, "defense": 15, "exp": 70,
+    {"name": "Хранитель Времени", "health": 60, "attack": 12, "defense": 15, "exp": 70, "gold": 35,
      "description": "Древнее существо, контролирующее потоки времени. Может предвидеть ваши атаки."},
-    {"name": "Бог Хронос", "health": 200, "attack": 30, "defense": 20, "exp": 0,
-     "description": "Верховный бог времени. Его могущество не знает границ. Он контролирует само течение времени."}
+    {"name": "Бог Хронос", "health": 200, "attack": 30, "defense": 20, "exp": 0, "gold": 500,
+     "description": "Верховный бог времени. Его могущество не знает границ. Он контролирует само течение времени."},
+    {"name": "Первозданный Хаос", "health": 400, "attack": 50, "defense": 30, "exp": 1000, "gold": 1000,
+     "description": "Существо, существовавшее до рождения времени. Его сила не поддается пониманию смертных."}
 ]
 
 
@@ -115,17 +125,20 @@ def get_enemy(enemy_index):
     base_enemy = base_enemies[enemy_index].copy()
     multiplier = difficulty_multipliers[game_difficulty]
 
+    if enemy_index == 3 and game_difficulty == "невозможная":
+        base_enemy["exp"] = 500
+
     enemy = {
         "name": base_enemy["name"],
         "health": int(base_enemy["health"] * multiplier["enemy_health"]),
         "attack": int(base_enemy["attack"] * multiplier["enemy_attack"]),
         "defense": int(base_enemy["defense"] * multiplier["enemy_defense"]),
         "exp": int(base_enemy["exp"] * multiplier["exp_gain"]),
+        "gold": base_enemy["gold"],
         "description": base_enemy["description"]
     }
 
     return enemy
-
 
 def show_title():
     print("=" * 80)
@@ -137,7 +150,6 @@ def show_title():
 
 
 def print_slow(text, min_delay=0.02, max_delay=0.05):
-    """Функция для естественного посимвольного вывода со случайной задержкой"""
     for chr in text:
         print(chr, end='', flush=True)
         time.sleep(random.uniform(min_delay, max_delay))
@@ -163,23 +175,24 @@ def show_intro():
 def choose_difficulty():
     global game_difficulty
     time.sleep(0.2)
-    print("\n" + "=" * 60)
+    print()
+    print("=" * 60)
     time.sleep(0.2)
-    print(" " * 20 + "ВЫБОР СЛОЖНОСТИ")
+    print("\t" * 3 + "ВЫБОР СЛОЖНОСТИ")
     time.sleep(0.2)
     print("=" * 60)
     time.sleep(0.2)
     print("Выберите уровень сложности игры:")
     time.sleep(0.2)
-    print("1: Лёгкая - для начинающих искателей приключений")
+    print("\t1: Лёгкая - для начинающих искателей приключений")
     time.sleep(0.2)
-    print("2: Средняя - сбалансированный игровой опыт")
+    print("\t2: Средняя - сбалансированный игровой опыт")
     time.sleep(0.2)
-    print("3: Сложная - испытание для опытных воинов")
+    print("\t3: Сложная - испытание для опытных воинов")
     time.sleep(0.2)
-    print("4: Безумная - выживание на грани возможного")
+    print("\t4: Безумная - выживание на грани возможного")
     time.sleep(0.2)
-    print("5: Невозможная - вызов для истинных мастеров")
+    print("\t5: Невозможная - вызов для истинных мастеров")
     time.sleep(0.2)
 
     while True:
@@ -210,14 +223,15 @@ def choose_difficulty():
 def show_difficulty_info():
     multiplier = difficulty_multipliers[game_difficulty]
 
-    print("\nНастройки сложности:")
-    print(f"Здоровье игрока: {multiplier['player_health']}x")
-    print(f"Атака игрока: {multiplier['player_attack']}x")
-    print(f"Защита игрока: {multiplier['player_defense']}x")
-    print(f"Здоровье врагов: {multiplier['enemy_health']}x")
-    print(f"Атака врагов: {multiplier['enemy_attack']}x")
-    print(f"Защита врагов: {multiplier['enemy_defense']}x")
-    print(f"Получаемый опыт: {multiplier['exp_gain']}x")
+    print()
+    print("Настройки сложности:")
+    print(f"\tЗдоровье игрока: {multiplier['player_health']}x")
+    print(f"\tАтака игрока: {multiplier['player_attack']}x")
+    print(f"\tЗащита игрока: {multiplier['player_defense']}x")
+    print(f"\tЗдоровье врагов: {multiplier['enemy_health']}x")
+    print(f"\tАтака врагов: {multiplier['enemy_attack']}x")
+    print(f"\tЗащита врагов: {multiplier['enemy_defense']}x")
+    print(f"\tПолучаемый опыт: {multiplier['exp_gain']}x")
 
     if game_difficulty == "лёгкая":
         print("\nРекомендуется для новичков. Враги слабее, вы получаете больше опыта.")
@@ -226,15 +240,15 @@ def show_difficulty_info():
     elif game_difficulty == "сложная":
         print("\nИстинный вызов. Враги сильны, требуется тактика и планирование.")
     elif game_difficulty == "безумная":
-        print("\nЭкстрим! Каждая битва может стать последней. Только для опытных.")
+        print("\нЭкстрим! Каждая битва может стать последней. Только для опытных.")
     elif game_difficulty == "невозможная":
-        print("\nЛегендарная сложность. Шансы против вас, но слава будет вечной!")
+        print("\нЛегендарная сложность. Шансы против вас, но слава будет вечной!")
+        print("\t★ Доступ к скрытому боссу: ДА ★")
 
     input("\nНажмите Enter чтобы продолжить...")
 
 
 def get_total_attack():
-    """Возвращает общую атаку с учетом экипировки"""
     total = player_attack
     if equipped_weapon:
         total += equipped_weapon["value"]
@@ -242,7 +256,6 @@ def get_total_attack():
 
 
 def get_total_defense():
-    """Возвращает общую защиту с учетом экипировки"""
     total = player_defense
     if equipped_armor and equipped_armor["effect"] == "defense":
         total += equipped_armor["value"]
@@ -250,7 +263,6 @@ def get_total_defense():
 
 
 def get_total_dodge():
-    """Возвращает общее уклонение с учетом экипировки"""
     total = player_dodge
     if equipped_armor and equipped_armor["effect"] == "dodge":
         total += equipped_armor["value"]
@@ -258,30 +270,28 @@ def get_total_dodge():
 
 
 def show_player_stats():
-    """Показывает характеристики персонажа с учетом экипировки"""
     print("\n" + "=" * 60)
-    print(f"ХАРАКТЕРИСТИКИ {player_name.upper()}")
+    print(f"\tХАРАКТЕРИСТИКИ {player_name.upper()}")
     print("=" * 60)
-    print(f"Класс: {player_class}")
-    print(f"Уровень: {player_level}")
-    print(f"Опыт: {player_exp}/{exp_to_next_level}")
-    print(f"Здоровье: {player_health}/{player_max_health}")
-    print(f"Атака: {get_total_attack()} (база: {player_attack})")
-    print(f"Защита: {get_total_defense()} (база: {player_defense})")
-    print(f"Уклонение: {get_total_dodge()}% (база: {player_dodge}%)")
-    print(f"Свободные очки характеристик: {player_stat_points}")
-
-    # Показываем экипировку
-    print(f"\nЭкипировка:")
-    print(f"  Оружие: {equipped_weapon['name'] if equipped_weapon else 'нет'}")
-    print(f"  Броня: {equipped_armor['name'] if equipped_armor else 'нет'}")
+    print(f"\tКласс: {player_class}")
+    print(f"\tУровень: {player_level}")
+    print(f"\tОпыт: {player_exp}/{exp_to_next_level}")
+    print(f"\tЗдоровье: {player_health}/{player_max_health}")
+    print(f"\tАтака: {get_total_attack()} (база: {player_attack})")
+    print(f"\tЗащита: {get_total_defense()} (база: {player_defense})")
+    print(f"\tУклонение: {get_total_dodge()}% (база: {player_dodge}%)")
+    print(f"\tЗолото: {player_gold} 💰")
+    print(f"\tСвободные очки характеристик: {player_stat_points}")
+    print(f"\n\tЭкипировка:")
+    print(f"\t\tОружие: {equipped_weapon['name'] if equipped_weapon else 'нет'}")
+    print(f"\t\tБроня: {equipped_armor['name'] if equipped_armor else 'нет'}")
 
     if player_inventory:
-        print("\nИнвентарь:")
+        print("\n\tИнвентарь:")
         for i, item in enumerate(player_inventory, 1):
-            print(f"  {i}: {item['name']} - {item['description']}")
+            print(f"\t\t{i}: {item['name']} - {item['description']}")
     else:
-        print("\nИнвентарь: пуст")
+        print("\n\tИнвентарь: пуст")
 
     print("=" * 60)
 
@@ -290,8 +300,9 @@ def create_character():
     global player_name, player_class, player_health, player_max_health, player_attack, player_defense, player_dodge
     global equipped_weapon, equipped_armor
 
-    print("\n" + "=" * 60)
-    print(" " * 20 + "СОЗДАНИЕ ПЕРСОНАЖА")
+    print()
+    print("=" * 60)
+    print("\t" * 2 + "СОЗДАНИЕ ПЕРСОНАЖА")
     print("=" * 60)
 
     while True:
@@ -302,17 +313,17 @@ def create_character():
             print("Имя не может быть пустым! Пожалуйста, введите имя вашего героя.")
 
     print("\nВыберите класс героя:")
-    print("1: Воин - сильный и выносливый боец ближнего боя")
-    print("   Преимущества: высокое здоровье, хорошая атака и защита")
-    print("   Начальные предметы: Меч воина")
+    print("\t1: Воин - сильный и выносливый боец ближнего боя")
+    print("\t\tПреимущества: высокое здоровье, хорошая атака и защита")
+    print("\t\tНачальные предметы: Меч воина")
     print()
-    print("2: Маг - могущественный заклинатель, владеющий магией времени")
-    print("   Преимущества: высокая атака, способность ослаблять врагов")
-    print("   Начальные предметы: Посох мага")
+    print("\t2: Маг - могущественный заклинатель, владеющий магией времени")
+    print("\t\tПреимущества: высокая атака, способность ослаблять врагов")
+    print("\t\tНачальные предметы: Посох мага")
     print()
-    print("3: Плут - ловкий и хитрый воин, мастер уклонений")
-    print("   Преимущества: высокое уклонение, критический урон")
-    print("   Начальные предметы: Плащ теней")
+    print("\t3: Плут - ловкий и хитрый воин, мастер уклонений")
+    print("\t\tПреимущества: высокое уклонение, критический урон")
+    print("\t\tНачальные предметы: Плащ теней")
 
     class_choice = input("\nВаш выбор (1-3): ")
 
@@ -330,8 +341,6 @@ def create_character():
         player_attack = int(base_attack * multiplier["player_attack"])
         player_defense = int(base_defense * multiplier["player_defense"])
         player_dodge = base_dodge
-
-        # Экипируем меч воина сразу
         equipped_weapon = items["меч_воина"]
         player_inventory.append(items["зелье_здоровья"])
 
@@ -347,8 +356,6 @@ def create_character():
         player_attack = int(base_attack * multiplier["player_attack"])
         player_defense = int(base_defense * multiplier["player_defense"])
         player_dodge = base_dodge
-
-        # Экипируем посох мага сразу
         equipped_weapon = items["посох_мага"]
         player_inventory.append(items["зелье_здоровья"])
         player_inventory.append(items["зелье_силы"])
@@ -365,8 +372,6 @@ def create_character():
         player_attack = int(base_attack * multiplier["player_attack"])
         player_defense = int(base_defense * multiplier["player_defense"])
         player_dodge = base_dodge
-
-        # Экипируем плащ теней сразу
         equipped_armor = items["плащ_теней"]
         player_inventory.append(items["зелье_здоровья"])
 
@@ -402,8 +407,9 @@ def level_up():
     player_max_health += 20
     player_health = player_max_health
 
-    print("\n" + "★" * 60)
-    print(f"★ ДОСТИГНУТ УРОВЕНЬ {player_level}! ★")
+    print()
+    print("★" * 60)
+    print(f"\t" * 6 + "★ ДОСТИГНУТ УРОВЕНЬ {player_level}! ★")
     print("★" * 60)
     print("Ваше здоровье увеличено на 20 единиц!")
     print("Вы получили 5 очков характеристик!")
@@ -417,11 +423,11 @@ def distribute_stat_points():
     while player_stat_points > 0:
         show_player_stats()
         print(f"\nОсталось очков характеристик: {player_stat_points}")
-        print("1: +10 к максимальному здоровью (также восстанавливает здоровье)")
-        print("2: +5 к атаке (увеличивает наносимый урон)")
-        print("3: +5 к защите (уменьшает получаемый урон)")
-        print("4: +2% к уклонению (шанс избежать атаки врага)")
-        print("5: Пропустить распределение (можно распределить позже)")
+        print("\t1: +10 к максимальному здоровью (также восстанавливает здоровье)")
+        print("\t2: +5 к атаке (увеличивает наносимый урон)")
+        print("\t3: +5 к защите (уменьшает получаемый урон)")
+        print("\t4: +2% к уклонению (шанс избежать атаки врага)")
+        print("\t5: Пропустить распределение (можно распределить позже)")
 
         choice = input("Выберите улучшение (1-5): ")
 
@@ -462,16 +468,22 @@ def add_exp(amount):
         level_up()
 
 
+def add_gold(amount):
+    global player_gold
+    player_gold += amount
+    print(f"Получено {amount} золота! 💰")
+
+
 def use_item():
     if not player_inventory:
         print("Ваш инвентарь пуст! Найдите предметы в сундуках")
         return False
 
     print("\n" + "-" * 40)
-    print("ИНВЕНТАРЬ")
+    print("\tИНВЕНТАРЬ")
     print("-" * 40)
     for i, item in enumerate(player_inventory, 1):
-        print(f"{i}: {item['name']} - {item['description']}")
+        print(f"\t{i}: {item['name']} - {item['description']}")
     print("-" * 40)
 
     try:
@@ -506,7 +518,6 @@ def use_item():
 
 
 def equip_item():
-    """Функция для экипировки предметов"""
     global equipped_weapon, equipped_armor
 
     if not player_inventory:
@@ -514,10 +525,10 @@ def equip_item():
         return False
 
     print("\n" + "-" * 40)
-    print("ЭКИПИРОВКА ПРЕДМЕТОВ")
+    print("\tЭКИПИРОВКА ПРЕДМЕТОВ")
     print("-" * 40)
     for i, item in enumerate(player_inventory, 1):
-        print(f"{i}: {item['name']} - {item['description']}")
+        print(f"\t{i}: {item['name']} - {item['description']}")
     print("-" * 40)
 
     try:
@@ -528,22 +539,18 @@ def equip_item():
             item = player_inventory[choice - 1]
 
             if item["type"] == "оружие":
-                # Снимаем предыдущее оружие
                 if equipped_weapon:
                     player_inventory.append(equipped_weapon)
                     print(f"Снято: {equipped_weapon['name']}")
-                # Экипируем новое оружие
                 equipped_weapon = item
                 player_inventory.remove(item)
                 print(f"Экипировано: {item['name']}")
                 return True
 
             elif item["type"] == "броня":
-                # Снимаем предыдущую броню
                 if equipped_armor:
                     player_inventory.append(equipped_armor)
                     print(f"Снято: {equipped_armor['name']}")
-                # Экипируем новую броню
                 equipped_armor = item
                 player_inventory.remove(item)
                 print(f"Экипировано: {item['name']}")
@@ -591,12 +598,12 @@ def enemy_attack_player(enemy):
 
 
 def battle(enemy_index):
-    global player_health, player_alive
+    global player_health, player_alive, player_gold
 
     enemy = get_enemy(enemy_index)
 
     print("\n" + "⚔" * 35)
-    print(f"⚔ БОЙ С {enemy['name'].upper()}! ⚔")
+    print(f"\t⚔ БОЙ С {enemy['name'].upper()}! ⚔")
     print("⚔" * 35)
     print(f"Описание: {enemy['description']}")
     print(f"Сложность: {game_difficulty}")
@@ -607,10 +614,10 @@ def battle(enemy_index):
         print(f"Здоровье {enemy['name']}: {enemy['health']}")
 
         print("\nВыберите действие:")
-        print("1: Атаковать (стандартная атака)")
-        print("2: Использовать предмет (восстановить здоровье или усилить характеристики)")
-        print("3: Попытаться уклониться (шанс: {}%)".format(get_total_dodge()))
-        print("4: Осмотреть противника (узнать характеристики врага)")
+        print("\t1: Атаковать (стандартная атака)")
+        print("\t2: Использовать предмет (восстановить здоровье или усилить характеристики)")
+        print("\t3: Попытаться уклониться (шанс: {}%)".format(get_total_dodge()))
+        print("\t4: Осмотреть противника (узнать характеристики врага)")
 
         choice = input("Ваш выбор (1-4): ")
 
@@ -630,10 +637,11 @@ def battle(enemy_index):
                 print("Вам не удалось сконцентрироваться для уклонения!")
         elif choice == "4":
             print(f"\nИнформация о {enemy['name']}:")
-            print(f"Здоровье: {enemy['health']}")
-            print(f"Атака: {enemy['attack']}")
-            print(f"Защита: {enemy['defense']}")
-            print(f"Опыт за победу: {enemy['exp']}")
+            print(f"\tЗдоровье: {enemy['health']}")
+            print(f"\tАтака: {enemy['attack']}")
+            print(f"\tЗащита: {enemy['defense']}")
+            print(f"\tОпыт за победу: {enemy['exp']}")
+            print(f"\tЗолото за победу: {enemy['gold']}")
             continue
         else:
             print("Неверный выбор! Вы пропускаете ход.")
@@ -652,21 +660,81 @@ def battle(enemy_index):
     else:
         print(f"\nПобеда! Вы победили {enemy['name']}!")
         add_exp(enemy["exp"])
+        add_gold(enemy["gold"])
         return True
 
 
+def shop():
+    global player_gold, player_inventory
+
+    print("\n" + "=" * 20)
+    print(" " * 5 + "= МАГАЗИН =")
+    print("=" * 20)
+    print("Добро пожаловать в магазин! Здесь вы можете купить полезные предметы.")
+    print(f"Ваше золото: {player_gold} 💰")
+    print("\nДоступные товары:")
+
+    available_items = [
+        ("зелье_здоровья", "Зелье здоровья (50 золота) - восстанавливает 50 HP"),
+        ("зелье_силы", "Зелье силы (75 золота) - +10 к атаке до конца боя"),
+        ("меч_воина", "Меч воина (200 золота) - +15 к атаке"),
+        ("посох_мага", "Посох мага (300 золота) - +20 к атаке"),
+        ("щит_защиты", "Щит защиты (250 золота) - +15 к защите"),
+        ("эликсир_богов", "Эликсир богов (200 золота) - восстанавливает 200 HP"),
+        ("плащ_теней", "Плащ теней (250 золота) - +10% к уклонению"),
+        ("кольцо_могущества", "Кольцо могущества (400 золота) - +25 к атаке"),
+        ("артефакт_хаоса", "Артефакт Хаоса (600 золота) - +40 к атаке")
+    ]
+
+    for i, (item_key, description) in enumerate(available_items, 1):
+        print(f"\t{i}: {description}")
+
+    print("\t0: Выйти из магазина")
+
+    try:
+        choice = int(input("\nВыберите товар для покупки (0-9): "))
+
+        if choice == 0:
+            return False
+
+        item_keys = [item[0] for item in available_items]
+        if 1 <= choice <= len(item_keys):
+            item_key = item_keys[choice - 1]
+            item = items[item_key]
+
+            if player_gold >= item["price"]:
+                player_gold -= item["price"]
+                player_inventory.append(item)
+                print(f"🏪 Вы купили {item['name']} за {item['price']} золота!")
+                print(f"🏪 Осталось золота: {player_gold} 💰")
+                return True
+            else:
+                print("Недостаточно золота!")
+                return False
+        else:
+            print("Неверный выбор!")
+            return False
+    except ValueError:
+        print("Введите число от 0 до 9!")
+        return False
+
+
 def explore_location():
-    global current_location, player_health, player_max_health, location_visited, final_boss_defeated
+    global current_location, player_health, player_max_health, location_visited, final_boss_defeated, hidden_boss_defeated
 
     location = locations[current_location]
 
     print("\n" + "=" * 80)
-    print(f"ЛОКАЦИЯ: {location['name']}")
+    print(f"\tЛОКАЦИЯ: {location['name']}")
     print("=" * 80)
     print(location['description'])
     print()
 
-    if location_visited[current_location] and location["type"] != "отдых" and location["type"] != "финальный бой":
+    if location["type"] == "скрытый бой" and game_difficulty != "невозможная":
+        print("Эта локация доступна только на сложности 'Невозможная'!")
+        return True
+
+    if location_visited[current_location] and location["type"] not in ["отдых", "финальный бой", "скрытый бой"]:
         print("Вы уже исследовали эту локацию. Здесь больше нечего делать.")
         return True
 
@@ -698,20 +766,65 @@ def explore_location():
 
         if boss_victory:
             final_boss_defeated = True
-            return "victory"
+
+            if game_difficulty == "невозможная" and not hidden_boss_defeated:
+                print()
+                print("🌟" * 50)
+                print(" " * 15 + "🌟 Открыта скрытая локация: Измерение Забвения! 🌟")
+                print("🌟" * 50)
+                print("Порталы в неизведанное измерение открылись перед вами!")
+                print("Теперь вы можете отправиться туда из меню путешествия!")
+                return True
+            else:
+                return "victory"
+        else:
+            return False
+
+    elif location["type"] == "скрытый бой":
+        if hidden_boss_defeated:
+            print("Вы уже победили Первозданный Хаос! Его энергия рассеялась по вселенной.")
+            return True
+
+        print_slow("Вы вошли в Измерение Забвения!")
+        print_slow("Перед вами предстал Первозданный Хаос - существо, существовавшее до рождения времени!")
+        print_slow("Это ваш самый трудный бой...")
+        time.sleep(2)
+
+        hidden_boss_victory = battle(4)
+
+        if hidden_boss_victory:
+            hidden_boss_defeated = True
+            return "hidden_victory"
         else:
             return False
 
     elif location["type"] == "сундук":
         print("Вы нашли сундук с сокровищами!")
 
+        owned_items = [item["name"] for item in player_inventory]
+        if equipped_weapon:
+            owned_items.append(equipped_weapon["name"])
+        if equipped_armor:
+            owned_items.append(equipped_armor["name"])
+
         item_keys = list(items.keys())
-        random_item_key = random.choice(item_keys)
+        available_items = [key for key in item_keys if
+                           key != "артефакт_хаоса" and items[key]["name"] not in owned_items]
+
+        if not available_items:
+            gold_found = random.randint(100, 300)
+            print(f"В сундуке вы находите {gold_found} золота!")
+            add_gold(gold_found)
+            return True
+
+        random_item_key = random.choice(available_items)
         found_item = items[random_item_key]
 
         print(f"В сундуке вы находите: {found_item['name']}!")
         print(f"Описание: {found_item['description']}")
         player_inventory.append(found_item)
+        gold_found = random.randint(50, 200)
+        add_gold(gold_found)
 
         if found_item["type"] == "зелье":
             use_now = input("Использовать сейчас? (y/n): ").lower()
@@ -739,30 +852,47 @@ def show_travel_options():
     global current_location
 
     while True:
-        print("\n" + "-" * 50)
+        print()
+        print("-" * 50)
         print("Куда вы хотите отправиться дальше?")
         print("-" * 50)
 
+        available_locations = []
+
         if current_location < len(locations) - 1:
             next_loc = locations[current_location + 1]
-            print(f"1: Отправиться вперед - в {next_loc['name']}")
+            if next_loc["type"] == "скрытый бой" and game_difficulty != "невозможная":
+                pass
+            else:
+                available_locations.append((1, next_loc))
+                if next_loc["type"] == "скрытый бой":
+                    print(f"\t1: Отправиться в Измерение Забвения - сразиться с Первозданным Хаосом!")
+                else:
+                    print(f"\t1: Отправиться вперед - в {next_loc['name']}")
 
         if current_location > 0:
             prev_loc = locations[current_location - 1]
-            print(f"2: Вернуться назад - в {prev_loc['name']}")
-
-        print("3: Осмотреть текущую локацию еще раз")
-        print("4: Посмотреть характеристики")
-        print("5: Использовать предмет")
-        print("6: Экипировать предмет")
-        print("7: Распределить очки характеристик")
-        print("0: Выйти из игры")
+            available_locations.append((2, prev_loc))
+            print(f"\t2: Вернуться назад - в {prev_loc['name']}")
+        print("\t3: Осмотреть текущую локацию еще раз")
+        print("\t4: Посмотреть характеристики")
+        print("\t5: Использовать предмет")
+        print("\t6: Экипировать предмет")
+        print("\t7: Распределить очки характеристик")
+        print("\t8: Магазин (купить предметы за золото)")
+        if game_difficulty == "невозможная" and final_boss_defeated and not hidden_boss_defeated and current_location != 6:
+            print(f"\t9: Отправиться в Измерение Забвения - сразиться с Первозданным Хаосом!")
+        print("\t0: Выйти из игры")
 
         choice = input("Ваш выбор: ")
 
         if choice == "1" and current_location < len(locations) - 1:
-            current_location += 1
-            break
+            next_loc = locations[current_location + 1]
+            if next_loc["type"] == "скрытый бой" and game_difficulty != "невозможная":
+                print("Эта локация доступна только на сложности 'Невозможная'!")
+            else:
+                current_location += 1
+                break
         elif choice == "2" and current_location > 0:
             current_location -= 1
             break
@@ -780,6 +910,8 @@ def show_travel_options():
                 distribute_stat_points()
             else:
                 print("У вас нет свободных очков характеристик для распределения.")
+        elif choice == "8":
+            shop()
         elif choice == "0":
             global game_running
             confirm = input("Вы уверены, что хотите выйти? (y/n): ").lower()
@@ -792,7 +924,7 @@ def show_travel_options():
 
 
 def game_loop():
-    global game_running, player_alive, current_location, final_boss_defeated
+    global game_running, player_alive, current_location, final_boss_defeated, hidden_boss_defeated
 
     print("\nНачинается ваше путешествие по Хроноспирали...")
     time.sleep(1)
@@ -803,10 +935,16 @@ def game_loop():
         if result == "victory":
             show_ending()
             break
+        elif result == "hidden_victory":
+            show_hidden_ending()
+            break
         elif not result:
             break
 
-        if final_boss_defeated:
+        if final_boss_defeated and hidden_boss_defeated and game_difficulty == "невозможная":
+            show_hidden_ending()
+            break
+        elif final_boss_defeated and game_difficulty != "невозможная":
             show_ending()
             break
 
@@ -816,9 +954,9 @@ def game_loop():
 
 
 def show_ending():
-    print("\n" + "★" * 80)
-    print(" " * 42 + "★ ПОБЕДА! ★")
-    print("★" * 80)
+    print("\n" + "★" * 38)
+    print("\t" * 5 + "★ ПОБЕДА! ★")
+    print("★" * 37)
     print_slow("\nВы стоите над поверженным телом Хроноса.")
     print_slow("Боги времени повержены. Их власть над вселенной разрушена.")
     print_slow("Вы отомстили за всё, что они сделали с вами и вашим народом.")
@@ -831,17 +969,44 @@ def show_ending():
     print_slow("В историю как имя того, кто бросил вызов богам и победил.")
     print_slow(f"\n{player_name}, вы вошли в легенду как спаситель вселенной!")
     print_slow("\nКонец игры.")
-    print("★" * 80)
+    print("★" * 38)
+
+
+def show_hidden_ending():
+    print()
+    print("🌌" * 39)
+    print(" " * 32 + "🌌 АБСОЛЮТНАЯ ПОБЕДА! 🌌")
+    print("🌌" * 39)
+    print()
+    print_slow("Вы стоите над рассеивающейся сущностью Первозданного Хаоса.")
+    print_slow("Вы победили не только богов времени, но и саму первозданную тьму.")
+    print_slow("Ваше имя будет помнить не только эта вселенная, но и все измерения.")
+    print()
+    print_slow("Вы стали тем, кто определяет судьбу не просто миров, а самой реальности.")
+    print_slow("Хроноспираль теперь под вашим контролем, и вы решаете, как будет течь время.")
+    print()
+    print_slow("Вы - новый Повелитель Времени и Хаоса.")
+    print_slow("Ваша воля определяет законы мироздания.")
+    print_slow("Ничто больше не угрожает существованию вселенной.")
+    print()
+    print_slow(f"{player_name}, вы стали легендой, которая будет жить вечно!")
+    print()
+    print_slow("Истинный конец игры.")
+    print()
+    print("🌌" * 39)
 
 
 def show_game_over():
-    print("\n" + "💀" * 80)
-    print(" " * 42 + "💀 ИГРА ОКОНЧЕНА 💀")
-    print("💀" * 80)
-    print_slow("\nВаше путешествие по Хроноспирали завершилось.")
+    print()
+    print("=" * 80)
+    print("30" * 5 + "= ИГРА ОКОНЧЕНА =")
+    print("=" * 80)
+    print()
+    print_slow("Ваше путешествие по Хроноспирали завершилось.")
     print_slow("Вы пали в бою, но ваша жертва не будет забыта.")
     print_slow("Возможно, в другой раз удача будет на вашей стороне...")
-    print_slow("\nПопробуйте сыграть снова с другим классом или стратегией!")
+    print()
+    print_slow("Попробуйте сыграть снова с другим классом или стратегией!")
     print_slow("Или выберите другую сложность, чтобы испытать себя по-новому.")
 
 
@@ -858,8 +1023,9 @@ def main():
     if not player_alive:
         show_game_over()
 
-    print("\nСпасибо за игру в CHRONOSPIRE!")
+    print("\nСпасибо за игру в ХРОНОСПИРАЛЬ!")
     print("")
+
 
 
 if __name__ == "__main__":
