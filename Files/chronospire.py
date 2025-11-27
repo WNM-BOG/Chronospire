@@ -220,8 +220,7 @@ def choose_difficulty():
 def show_difficulty_info():
     multiplier = difficulty_multipliers[game_difficulty]
 
-    print()
-    print("Настройки сложности:")
+    print("\nНастройки сложности:")
     print(f"\tЗдоровье игрока: {multiplier['player_health']}x")
     print(f"\tАтака игрока: {multiplier['player_attack']}x")
     print(f"\tЗащита игрока: {multiplier['player_defense']}x")
@@ -237,9 +236,9 @@ def show_difficulty_info():
     elif game_difficulty == "сложная":
         print("\nИстинный вызов. Враги сильны, требуется тактика и планирование.")
     elif game_difficulty == "безумная":
-        print("\нЭкстрим! Каждая битва может стать последней. Только для опытных.")
+        print("\nЭкстрим! Каждая битва может стать последней. Только для опытных.")
     elif game_difficulty == "невозможная":
-        print("\нЛегендарная сложность. Шансы против вас, но слава будет вечной!")
+        print("\nЛегендарная сложность. Шансы против вас, но слава будет вечной!")
         print("\t★ Доступ к скрытому боссу: ДА ★")
 
     input("\nНажмите Enter чтобы продолжить...")
@@ -313,12 +312,10 @@ def create_character():
     print("\t1: Воин - сильный и выносливый боец ближнего боя")
     print("\t\tПреимущества: высокое здоровье, хорошая атака и защита")
     print("\t\tНачальные предметы: Меч воина")
-    print()
-    print("\t2: Маг - могущественный заклинатель, владеющий магией времени")
+    print("\n\t2: Маг - могущественный заклинатель, владеющий магией времени")
     print("\t\tПреимущества: высокая атака, способность ослаблять врагов")
     print("\t\tНачальные предметы: Посох мага")
-    print()
-    print("\t3: Плут - ловкий и хитрый воин, мастер уклонений")
+    print("\n\t3: Ассасин - ловкий и хитрый воин, мастер уклонений")
     print("\t\tПреимущества: высокое уклонение, критический урон")
     print("\t\tНачальные предметы: Плащ теней")
 
@@ -332,6 +329,13 @@ def create_character():
         base_attack = 15
         base_defense = 15
         base_dodge = 5
+        if player_name.lower() == "иван" or player_name.lower() == "ваня":
+            base_health += 25
+            base_attack += 25
+            base_defense += 25
+            base_dodge += 25
+        else:
+            pass
 
         player_health = int(base_health * multiplier["player_health"])
         player_max_health = player_health
@@ -347,6 +351,13 @@ def create_character():
         base_attack = 25
         base_defense = 5
         base_dodge = 5
+        if player_name.lower() == "иван" or player_name.lower() == "ваня":
+            base_health += 25
+            base_attack += 25
+            base_defense += 25
+            base_dodge += 25
+        else:
+            pass
 
         player_health = int(base_health * multiplier["player_health"])
         player_max_health = player_health
@@ -358,12 +369,18 @@ def create_character():
         player_inventory.append(items["зелье_силы"])
 
     elif class_choice == "3":
-        player_class = "Плут"
-        base_health = 100
-        base_attack = 20
-        base_defense = 10
-        base_dodge = 15
-
+        player_class = "Ассасин"
+        base_health = 75
+        base_attack = 25
+        base_defense = 5
+        base_dodge = 25
+        if player_name.lower() == "иван" or player_name.lower() == "ваня":
+            base_health += 25
+            base_attack += 25
+            base_defense += 25
+            base_dodge += 25
+        else:
+            pass
         player_health = int(base_health * multiplier["player_health"])
         player_max_health = player_health
         player_attack = int(base_attack * multiplier["player_attack"])
@@ -406,7 +423,7 @@ def level_up():
 
     print()
     print("★" * 60)
-    print(f"\t" * 6 + "★ ДОСТИГНУТ УРОВЕНЬ {player_level}! ★")
+    print('\t' * 6 + f"★ ДОСТИГНУТ УРОВЕНЬ {player_level}! ★")
     print("★" * 60)
     print("Ваше здоровье увеличено на 20 единиц!")
     print("Вы получили 5 очков характеристик!")
@@ -996,7 +1013,7 @@ def show_hidden_ending():
 def show_game_over():
     print()
     print("=" * 80)
-    print("30" * 5 + "= ИГРА ОКОНЧЕНА =")
+    print('\t' * 5 + "= ИГРА ОКОНЧЕНА =")
     print("=" * 80)
     print()
     print_slow("Ваше путешествие по Хроноспирали завершилось.")
