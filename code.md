@@ -141,22 +141,6 @@ def get_enemy(enemy_index):
 
     return enemy
 
-
-def print_centered(text, width=80):
-    lines = text.split('\n')
-    for line in lines:
-        print(line.center(width))
-
-
-def print_section_title(title, symbol="=", width=80):
-    print()
-    border = symbol * width
-    print(border)
-    print_centered(title, width)
-    print(border)
-    print()
-
-
 def show_title():
     print("=" * 80)
     print(" " * 32 + "ХРОНОСПИРАЛЬ")
@@ -192,7 +176,8 @@ def show_intro():
 def choose_difficulty():
     global game_difficulty
     time.sleep(0.2)
-    print("\n" + "=" * 60)
+    print()
+    print("=" * 60)
     time.sleep(0.2)
     print("\t" * 3 + "ВЫБОР СЛОЖНОСТИ")
     time.sleep(0.2)
@@ -255,9 +240,9 @@ def show_difficulty_info():
     elif game_difficulty == "сложная":
         print("\nИстинный вызов. Враги сильны, требуется тактика и планирование.")
     elif game_difficulty == "безумная":
-        print("\нЭкстрим! Каждая битва может стать последней. Только для опытных.")
+        print("\nЭкстрим! Каждая битва может стать последней. Только для опытных.")
     elif game_difficulty == "невозможная":
-        print("\нЛегендарная сложность. Шансы против вас, но слава будет вечной!")
+        print("\nЛегендарная сложность. Шансы против вас, но слава будет вечной!")
         print("\t★ Доступ к скрытому боссу: ДА ★")
 
     input("\nНажмите Enter чтобы продолжить...")
@@ -331,12 +316,10 @@ def create_character():
     print("\t1: Воин - сильный и выносливый боец ближнего боя")
     print("\t\tПреимущества: высокое здоровье, хорошая атака и защита")
     print("\t\tНачальные предметы: Меч воина")
-    print()
-    print("\t2: Маг - могущественный заклинатель, владеющий магией времени")
+    print("\n\t2: Маг - могущественный заклинатель, владеющий магией времени")
     print("\t\tПреимущества: высокая атака, способность ослаблять врагов")
     print("\t\tНачальные предметы: Посох мага")
-    print()
-    print("\t3: Плут - ловкий и хитрый воин, мастер уклонений")
+    print("\n\t3: Ассасин - ловкий и хитрый воин, мастер уклонений")
     print("\t\tПреимущества: высокое уклонение, критический урон")
     print("\t\tНачальные предметы: Плащ теней")
 
@@ -350,6 +333,13 @@ def create_character():
         base_attack = 15
         base_defense = 15
         base_dodge = 5
+        if player_name.lower() == "иван" or player_name.lower() == "ваня":
+            base_health += 25
+            base_attack += 25
+            base_defense += 25
+            base_dodge += 25
+        else:
+            pass
 
         player_health = int(base_health * multiplier["player_health"])
         player_max_health = player_health
@@ -365,25 +355,36 @@ def create_character():
         base_attack = 25
         base_defense = 5
         base_dodge = 5
+        if player_name.lower() == "иван" or player_name.lower() == "ваня":
+            base_health += 25
+            base_attack += 25
+            base_defense += 25
+            base_dodge += 25
+        else:
+            pass
 
         player_health = int(base_health * multiplier["player_health"])
         player_max_health = player_health
         player_attack = int(base_attack * multiplier["player_attack"])
         player_defense = int(base_defense * multiplier["player_defense"])
         player_dodge = base_dodge
-
-        # Экипируем посох мага сразу
         equipped_weapon = items["посох_мага"]
         player_inventory.append(items["зелье_здоровья"])
         player_inventory.append(items["зелье_силы"])
 
     elif class_choice == "3":
-        player_class = "Плут"
-        base_health = 100
-        base_attack = 20
-        base_defense = 10
-        base_dodge = 15
-
+        player_class = "Ассасин"
+        base_health = 75
+        base_attack = 25
+        base_defense = 5
+        base_dodge = 25
+        if player_name.lower() == "иван" or player_name.lower() == "ваня":
+            base_health += 25
+            base_attack += 25
+            base_defense += 25
+            base_dodge += 25
+        else:
+            pass
         player_health = int(base_health * multiplier["player_health"])
         player_max_health = player_health
         player_attack = int(base_attack * multiplier["player_attack"])
@@ -426,7 +427,7 @@ def level_up():
 
     print()
     print("★" * 60)
-    print(f"\t★ ДОСТИГНУТ УРОВЕНЬ {player_level}! ★")
+    print('\t' * 6 + f"★ ДОСТИГНУТ УРОВЕНЬ {player_level}! ★")
     print("★" * 60)
     print("Ваше здоровье увеличено на 20 единиц!")
     print("Вы получили 5 очков характеристик!")
@@ -698,9 +699,9 @@ def shop():
         ("посох_мага", "Посох мага (300 золота) - +20 к атаке"),
         ("щит_защиты", "Щит защиты (250 золота) - +15 к защите"),
         ("эликсир_богов", "Эликсир богов (200 золота) - восстанавливает 200 HP"),
-        ("плащ_теней", "Плащ теней (350 золота) - +10% к уклонению"),
-        ("кольцо_могущества", "Кольцо могущества (600 золота) - +25 к атаке"),
-        ("артефакт_хаоса", "Артефакт Хаоса (1000 золота) - +40 к атаке")
+        ("плащ_теней", "Плащ теней (250 золота) - +10% к уклонению"),
+        ("кольцо_могущества", "Кольцо могущества (400 золота) - +25 к атаке"),
+        ("артефакт_хаоса", "Артефакт Хаоса (600 золота) - +40 к атаке")
     ]
 
     for i, (item_key, description) in enumerate(available_items, 1):
@@ -913,24 +914,21 @@ def show_travel_options():
         elif choice == "2" and current_location > 0:
             current_location -= 1
             break
-        elif choice == "3" and game_difficulty == "невозможная" and final_boss_defeated and not hidden_boss_defeated:
-            current_location = 7
-            break
-        elif choice == "4":
+        elif choice == "3":
             print("\nВы осматриваете локацию еще раз...")
             print(locations[current_location]['description'])
-        elif choice == "5":
+        elif choice == "4":
             show_player_stats()
-        elif choice == "6":
+        elif choice == "5":
             use_item()
-        elif choice == "7":
+        elif choice == "6":
             equip_item()
-        elif choice == "8":
+        elif choice == "7":
             if player_stat_points > 0:
                 distribute_stat_points()
             else:
                 print("У вас нет свободных очков характеристик для распределения.")
-        elif choice == "9":
+        elif choice == "8":
             shop()
         elif choice == "0":
             global game_running
@@ -974,9 +972,9 @@ def game_loop():
 
 
 def show_ending():
-    print("\n" + "★" * 80)
+    print("\n" + "★" * 38)
     print("\t" * 5 + "★ ПОБЕДА! ★")
-    print("★" * 80)
+    print("★" * 37)
     print_slow("\nВы стоите над поверженным телом Хроноса.")
     print_slow("Боги времени повержены. Их власть над вселенной разрушена.")
     print_slow("Вы отомстили за всё, что они сделали с вами и вашим народом.")
@@ -989,7 +987,7 @@ def show_ending():
     print_slow("В историю как имя того, кто бросил вызов богам и победил.")
     print_slow(f"\n{player_name}, вы вошли в легенду как спаситель вселенной!")
     print_slow("\nКонец игры.")
-    print("★" * 80)
+    print("★" * 38)
 
 
 def show_hidden_ending():
@@ -1019,7 +1017,7 @@ def show_hidden_ending():
 def show_game_over():
     print()
     print("=" * 80)
-    print("30" * 5 + "= ИГРА ОКОНЧЕНА =")
+    print('\t' * 5 + "= ИГРА ОКОНЧЕНА =")
     print("=" * 80)
     print()
     print_slow("Ваше путешествие по Хроноспирали завершилось.")
