@@ -128,6 +128,7 @@ def get_enemy(enemy_index):
     enemy = {
         "name": base_enemy["name"],
         "health": int(base_enemy["health"] * multiplier["enemy_health"]),
+        "max_health": int(base_enemy["health"] * multiplier["enemy_health"]),
         "attack": int(base_enemy["attack"] * multiplier["enemy_attack"]),
         "defense": int(base_enemy["defense"] * multiplier["enemy_defense"]),
         "exp": int(base_enemy["exp"] * multiplier["exp_gain"]),
@@ -412,19 +413,20 @@ def create_character():
 def level_up():
     global player_level, player_exp, exp_to_next_level, player_stat_points, player_max_health, player_health
 
-    player_level += 1
-    player_exp -= exp_to_next_level
-    exp_to_next_level = int(exp_to_next_level * 1.5)
-    player_stat_points += 5
-    player_max_health += 20
-    player_health = player_max_health
+    while player_exp >= exp_to_next_level:
+        player_level += 1
+        player_exp -= exp_to_next_level
+        exp_to_next_level = int(exp_to_next_level * 1.5)
+        player_stat_points += 5
+        player_max_health += 20
+        player_health = player_max_health
 
-    print()
-    print("★" * 60)
-    print(' ' * 24 + f"★ ДОСТИГНУТ УРОВЕНЬ {player_level}! ★")
-    print("★" * 60)
-    print("Ваше здоровье увеличено на 20 единиц!")
-    print("Вы получили 5 очков характеристик!")
+        print()
+        print("★" * 60)
+        print(' ' * 24 + f"★ ДОСТИГНУТ УРОВЕНЬ {player_level}! ★")
+        print("★" * 60)
+        print("Ваше здоровье увеличено на 20 единиц!")
+        print("Вы получили 5 очков характеристик!")
 
     distribute_stat_points()
 
@@ -487,46 +489,46 @@ def add_gold(amount):
 
 
 def use_item():
-    if not player_inventory:
-        print("Ваш инвентарь пуст! Найдите предметы в сундуках")
-        return False
-
-    print("\n" + "-" * 40)
-    print("\tИНВЕНТАРЬ")
-    print("-" * 40)
-    for i, item in enumerate(player_inventory, 1):
-        print(f"\t{i}: {item['name']} - {item['description']}")
-    print("-" * 40)
-
-    try:
-        choice = int(input("Выберите предмет для использования (0 для отмены): "))
-        if choice == 0:
+    while True:
+        if not player_inventory:
+            print("Ваш инвентарь пуст! Найдите предметы в сундуках")
             return False
-        elif 1 <= choice <= len(player_inventory):
-            item = player_inventory[choice - 1]
 
-            if item["type"] == "зелье":
-                if item["effect"] == "heal":
-                    heal_amount = item["value"]
-                    global player_health, player_max_health
-                    player_health = min(player_max_health, player_health + heal_amount)
-                    print(f"Использовано {item['name']}! Восстановлено {heal_amount} здоровья.")
-                elif item["effect"] == "attack":
-                    global player_attack
-                    player_attack += item["value"]
-                    print(f"Использовано {item['name']}! Атака увеличена на {item['value']} до конца боя.")
+        print("\n" + "-" * 40)
+        print("\tИНВЕНТАРЬ")
+        print("-" * 40)
+        for i, item in enumerate(player_inventory, 1):
+            print(f"\t{i}: {item['name']} - {item['description']}")
+        print("-" * 40)
+        print("\t0: Выйти")
 
-                player_inventory.remove(item)
-                return True
-            else:
-                print(f"{item['name']} нельзя использовать напрямую. Это экипировка.")
+        try:
+            choice = int(input("Выберите предмет для использования: "))
+            if choice == 0:
                 return False
-        else:
-            print("Неверный выбор! Пожалуйста, выберите номер из списка.")
-            return False
-    except ValueError:
-        print("Введите число, соответствующее номеру предмета!")
-        return False
+            elif 1 <= choice <= len(player_inventory):
+                item = player_inventory[choice - 1]
+
+                if item["type"] == "зелье":
+                    if item["effect"] == "heal":
+                        heal_amount = item["value"]
+                        global player_health, player_max_health
+                        player_health = min(player_max_health, player_health + heal_amount)
+                        print(f"Использовано {item['name']}! Восстановлено {heal_amount} здоровья.")
+                    elif item["effect"] == "attack":
+                        global player_attack
+                        player_attack += item["value"]
+                        print(f"Использовано {item['name']}! Атака увеличена на {item['value']} до конца боя.")
+
+                    player_inventory.remove(item)
+                    return True
+                else:
+                    print(f"{item['name']} нельзя использовать напрямую. Это экипировка.")
+                    return False
+            else:
+                print("Неверный выбор! Пожалуйста, выберите номер из списка.")
+        except ValueError:
+            print("Введите число, соответствующее номеру предмета!")
 
 
 def equip_item():
@@ -623,7 +625,7 @@ def battle(enemy_index):
 
     while player_health > 0 and enemy["health"] > 0:
         print(f"\nВаше здоровье: {player_health}/{player_max_health}")
-        print(f"Здоровье {enemy['name']}: {enemy['health']}")
+        print(f"Здоровье {enemy['name']}: {enemy['health']}/{enemy['max_health']}")
 
         print("\nВыберите действие:")
         print("\t1: Атаковать (стандартная атака)")
@@ -649,7 +651,7 @@ def battle(enemy_index):
                 print("Вам не удалось сконцентрироваться для уклонения!")
         elif choice == "4":
             print(f"\nИнформация о {enemy['name']}:")
-            print(f"\tЗдоровье: {enemy['health']}")
+            print(f"\tЗдоровье: {enemy['health']}/{enemy['max_health']}")
             print(f"\tАтака: {enemy['attack']}")
             print(f"\tЗащита: {enemy['defense']}")
             print(f"\tОпыт за победу: {enemy['exp']}")
@@ -679,56 +681,91 @@ def battle(enemy_index):
 def shop():
     global player_gold, player_inventory
 
-    print("\n" + "=" * 20)
-    print(" " * 5 + "= МАГАЗИН =")
-    print("=" * 20)
-    print("Добро пожаловать в магазин! Здесь вы можете купить полезные предметы.")
-    print(f"Ваше золото: {player_gold} 💰")
-    print("\nДоступные товары:")
+    while True:
+        print("\n" + "=" * 20)
+        print(" " * 5 + "= МАГАЗИН =")
+        print("=" * 20)
+        print("Добро пожаловать в магазин! Здесь вы можете купить полезные предметы.")
+        print(f"Ваше золото: {player_gold} 💰")
+        print("\nДоступные товары:")
 
-    available_items = [
-        ("зелье_здоровья", "Зелье здоровья (50 золота) - восстанавливает 50 HP"),
-        ("зелье_силы", "Зелье силы (75 золота) - +10 к атаке до конца боя"),
-        ("меч_воина", "Меч воина (200 золота) - +15 к атаке"),
-        ("посох_мага", "Посох мага (300 золота) - +20 к атаке"),
-        ("щит_защиты", "Щит защиты (250 золота) - +15 к защите"),
-        ("эликсир_богов", "Эликсир богов (200 золота) - восстанавливает 200 HP"),
-        ("плащ_теней", "Плащ теней (250 золота) - +10% к уклонению"),
-        ("кольцо_могущества", "Кольцо могущества (400 золота) - +25 к атаке"),
-        ("артефакт_хаоса", "Артефакт Хаоса (600 золота) - +40 к атаке")
-    ]
+        available_items = [
+            ("зелье_здоровья", "Зелье здоровья (50 золота) - восстанавливает 50 HP"),
+            ("зелье_силы", "Зелье силы (75 золота) - +10 к атаке до конца боя"),
+            ("меч_воина", "Меч воина (200 золота) - +15 к атаке"),
+            ("посох_мага", "Посох мага (300 золота) - +20 к атаке"),
+            ("щит_защиты", "Щит защиты (250 золота) - +15 к защите"),
+            ("эликсир_богов", "Эликсир богов (200 золота) - восстанавливает 200 HP"),
+            ("плащ_теней", "Плащ теней (250 золота) - +10% к уклонению"),
+            ("кольцо_могущества", "Кольцо могущества (400 золота) - +25 к атаке"),
+            ("артефакт_хаоса", "Артефакт Хаоса (600 золота) - +40 к атаке")
+        ]
 
-    for i, (item_key, description) in enumerate(available_items, 1):
-        print(f"\t{i}: {description}")
+        for i, (item_key, description) in enumerate(available_items, 1):
+            print(f"\t{i}: {description}")
 
-    print("\t0: Выйти из магазина")
+        print("\t0: Выйти из магазина")
 
-    try:
-        choice = int(input("\nВыберите товар для покупки (0-9): "))
+        try:
+            choice = int(input("\nВыберите товар для покупки (0-9): "))
 
-        if choice == 0:
-            return False
+            if choice == 0:
+                break
 
-        item_keys = [item[0] for item in available_items]
-        if 1 <= choice <= len(item_keys):
-            item_key = item_keys[choice - 1]
-            item = items[item_key]
+            item_keys = [item[0] for item in available_items]
+            if 1 <= choice <= len(item_keys):
+                item_key = item_keys[choice - 1]
+                item = items[item_key]
 
-            if player_gold >= item["price"]:
-                player_gold -= item["price"]
-                player_inventory.append(item)
-                print(f"🏪 Вы купили {item['name']} за {item['price']} золота!")
-                print(f"🏪 Осталось золота: {player_gold} 💰")
-                return True
+                if player_gold >= item["price"]:
+                    player_gold -= item["price"]
+                    player_inventory.append(item)
+                    print(f"🏪 Вы купили {item['name']} за {item['price']} золота!")
+                    print(f"🏪 Осталось золота: {player_gold} 💰")
+                else:
+                    print("Недостаточно золота!")
             else:
-                print("Недостаточно золота!")
-                return False
-        else:
-            print("Неверный выбор!")
-            return False
-    except ValueError:
-        print("Введите число от 0 до 9!")
-        return False
+                print("Неверный выбор!")
+        except ValueError:
+            print("Введите число от 0 до 9!")
+
+
+def open_chest(bonus=False):
+    print("Вы нашли сундук с сокровищами!" if not bonus else "Вы нашли бонусный сундук!")
+
+    owned_items = [item["name"] for item in player_inventory]
+    if equipped_weapon:
+        owned_items.append(equipped_weapon["name"])
+    if equipped_armor:
+        owned_items.append(equipped_armor["name"])
+
+    item_keys = list(items.keys())
+    available_items = [key for key in item_keys if items[key]["name"] not in owned_items]
+
+    if not available_items:
+        gold_found = random.randint(100, 300) if not bonus else random.randint(50, 150)
+        print(f"В сундуке вы находите {gold_found} золота!")
+        add_gold(gold_found)
+        return
+
+    random_item_key = random.choice(available_items)
+    found_item = items[random_item_key]
+
+    print(f"В сундуке вы находите: {found_item['name']}!")
+    print(f"Описание: {found_item['description']}")
+    player_inventory.append(found_item)
+    gold_found = random.randint(50, 200) if not bonus else random.randint(25, 100)
+    add_gold(gold_found)
+
+    if found_item["type"] == "зелье":
+        use_now = input("Использовать сейчас? (y/n): ").lower()
+        if use_now == 'y' or use_now == 'д':
+            if found_item["effect"] == "heal":
+                heal_amount = found_item["value"]
+                global player_health, player_max_health
+                player_health = min(player_max_health, player_health + heal_amount)
+                print(f"Использовано! Восстановлено {heal_amount} здоровья.")
+                player_inventory.remove(found_item)
 
 
 def explore_location():
@@ -746,9 +783,16 @@ def explore_location():
         print("Эта локация доступна только на сложности 'Невозможная'!")
         return True
 
+    bonus_chest = False
     if location_visited[current_location] and location["type"] not in ["отдых", "финальный бой", "скрытый бой"]:
-        print("Вы уже исследовали эту локацию. Здесь больше нечего делать.")
-        return True
+        if random.random() < 0.3:
+            bonus_chest = True
+            print("При повторном осмотре вы находите бонусный сундук!")
+            open_chest(bonus=True)
+            return True
+        else:
+            print("Вы уже исследовали эту локацию. Здесь больше нечего делать.")
+            return True
 
     location_visited[current_location] = True
 
@@ -811,42 +855,7 @@ def explore_location():
             return False
 
     elif location["type"] == "сундук":
-        print("Вы нашли сундук с сокровищами!")
-
-        owned_items = [item["name"] for item in player_inventory]
-        if equipped_weapon:
-            owned_items.append(equipped_weapon["name"])
-        if equipped_armor:
-            owned_items.append(equipped_armor["name"])
-
-        item_keys = list(items.keys())
-        available_items = [key for key in item_keys if
-                           key != "артефакт_хаоса" and items[key]["name"] not in owned_items]
-
-        if not available_items:
-            gold_found = random.randint(100, 300)
-            print(f"В сундуке вы находите {gold_found} золота!")
-            add_gold(gold_found)
-            return True
-
-        random_item_key = random.choice(available_items)
-        found_item = items[random_item_key]
-
-        print(f"В сундуке вы находите: {found_item['name']}!")
-        print(f"Описание: {found_item['description']}")
-        player_inventory.append(found_item)
-        gold_found = random.randint(50, 200)
-        add_gold(gold_found)
-
-        if found_item["type"] == "зелье":
-            use_now = input("Использовать сейчас? (y/n): ").lower()
-            if use_now == 'y' or use_now == 'д':
-                if found_item["effect"] == "heal":
-                    heal_amount = found_item["value"]
-                    player_health = min(player_max_health, player_health + heal_amount)
-                    print(f"Использовано! Восстановлено {heal_amount} здоровья.")
-                    player_inventory.remove(found_item)
-
+        open_chest()
         return True
 
     elif location["type"] == "отдых":
@@ -1036,8 +1045,7 @@ def main():
         show_game_over()
 
     print("\nСпасибо за игру в ХРОНОСПИРАЛЬ!")
-    print("")
-
+    input("\nНажмите любую клавишу чтобы выйти...")
 
 
 if __name__ == "__main__":
