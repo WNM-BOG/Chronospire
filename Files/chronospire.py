@@ -1,6 +1,7 @@
 import random
 import time
 import sys
+import os
 
 player_name = ""
 player_class = ""
@@ -618,6 +619,7 @@ def battle(enemy_index):
     global player_health, player_alive, player_gold
 
     enemy = get_enemy(enemy_index)
+    second_phase_activated = False
 
     print("\n" + "⚔" * 35)
     print(f"\t⚔ БОЙ С {enemy['name'].upper()}! ⚔")
@@ -629,6 +631,39 @@ def battle(enemy_index):
     while player_health > 0 and enemy["health"] > 0:
         print(f"\nВаше здоровье: {player_health}/{player_max_health}")
         print(f"Здоровье {enemy['name']}: {enemy['health']}/{enemy['max_health']}")
+        if (enemy_index == 4 and not second_phase_activated and
+                enemy["health"] <= enemy["max_health"] * 0.5):
+
+            print_slow("\nЧто-то изменилось... Воздух стал гуще, реальность искажается.")
+            print_slow("Первозданный Хаос медленно поднимается, его форма начинает меняться.")
+            print_slow("Ты чувствуешь, как дрожит само пространство вокруг.")
+            time.sleep(1)
+
+            print_slow("\nГолос из ниоткуда: 'Ты видел лишь тень моей силы...'")
+            print_slow("'Пришло время показать тебе истинную сущность хаоса.'")
+            time.sleep(2)
+
+            try:
+                if os.path.exists("WNM.mp3"):
+                    print_slow("Звучит древняя мелодия, пробуждающая что-то первозданное...")
+                    pygame.mixer.music.load("WNM.mp3")
+                    pygame.mixer.music.play(-1)
+                    music_started = True
+                else:
+                    print_slow("Эпическая музыка наполняет воздух...")
+            except Exception as e:
+                print(f"Не удалось воспроизвести музыку: {e}")
+                print_slow("Звуковые вибрации меняются, становясь более интенсивными...")
+            enemy["health"] = enemy["max_health"]
+            enemy["attack"] = int(enemy["attack"] * 1.8)
+            enemy["defense"] = int(enemy["defense"] * 1.5)
+            enemy["name"] = "Пробужденный Первозданный Хаос"
+
+            print_slow(f"\nХаос восстанавливается! Его сила многократно возрастает!")
+            print_slow("Реальность вокруг начинает распадаться на части...")
+
+            second_phase_activated = True
+            time.sleep(2)
 
         print("\nВыберите действие:")
         print("\t1: Атаковать (стандартная атака)")
@@ -657,6 +692,9 @@ def battle(enemy_index):
             print(f"\tЗдоровье: {enemy['health']}/{enemy['max_health']}")
             print(f"\tАтака: {enemy['attack']}")
             print(f"\tЗащита: {enemy['defense']}")
+            if second_phase_activated:
+                print(f"\tФаза: Вторая (пробужденная)")
+                print(f"\tОпасность: Максимальная")
             print(f"\tОпыт за победу: {enemy['exp']}")
             print(f"\tЗолото за победу: {enemy['gold']}")
             continue
@@ -668,14 +706,42 @@ def battle(enemy_index):
 
         print(f"\nХод {enemy['name']}...")
         time.sleep(1)
-        enemy_attack_player(enemy)
+
+        if second_phase_activated and random.random() < 0.3:  # 30% шанс особой атаки
+            attack_type = random.choice(["reality", "time", "chaos"])
+
+            if attack_type == "reality":
+                print_slow("🌀 Реальность искажается вокруг вас...")
+                damage = enemy["attack"] + random.randint(10, 20)
+                player_health -= damage
+                print(f"Искажение реальности наносит {damage} урона!")
+
+            elif attack_type == "time":
+                print_slow("⏳ Время замедляется вокруг вас...")
+                global player_dodge
+                player_dodge = max(0, player_dodge - 15)
+                print("Ваше уклонение уменьшено на 15%!")
+
+            elif attack_type == "chaos":
+                print_slow("💫 Хаос поглощает часть вашей силы...")
+                heal_amount = random.randint(20, 40)
+                enemy["health"] = min(enemy["max_health"], enemy["health"] + heal_amount)
+                print(f"Хаос поглощает вашу энергию и восстанавливает {heal_amount} здоровья!")
+        else:
+            enemy_attack_player(enemy)
 
     if player_health <= 0:
         print("\nВы пали в бою...")
         player_alive = False
         return False
     else:
-        print(f"\nПобеда! Вы победили {enemy['name']}!")
+        if second_phase_activated:
+            print_slow("\nТы сделал это... Ты победил непобедимое.")
+            print_slow("Первозданный Хаос медленно рассеивается, оставляя после лишь тишину.")
+            print_slow("Реальность постепенно возвращается к своему обычному состоянию.")
+        else:
+            print(f"\nПобеда! Вы победили {enemy['name']}!")
+
         add_exp(enemy["exp"])
         add_gold(enemy["gold"])
         return True
