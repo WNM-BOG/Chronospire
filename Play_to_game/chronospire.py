@@ -649,9 +649,9 @@ def battle(enemy_index):
             time.sleep(2)
 
             try:
-                if os.path.exists("Chronospire\Play_to_game\WNM.mp3"):
+                if os.path.exists("C:Users\Иван\Documents\GitHub\Chronospire\Play_to_game\WNM.wav"):
                     print_slow("Звучит древняя мелодия, пробуждающая что-то первозданное...")
-                    pygame.mixer.music.load("Chronospire\Play_to_game\WNM.mp3")
+                    pygame.mixer.music.load("C:Users\Иван\Documents\GitHub\Chronospire\Play_to_game\WNM.wav")
                     pygame.mixer.music.play(-1)
                     music_started = True
                 else:
