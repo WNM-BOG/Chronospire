@@ -2,7 +2,11 @@ import random
 import time
 import sys
 import os
-import pygame
+
+for file in os.listdir('.'):
+    if 'wnm' in file.lower():
+        os.rename(file, 'WNM.mp3')
+        break
 
 player_name = ""
 player_class = ""
