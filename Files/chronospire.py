@@ -124,6 +124,9 @@ def get_enemy(enemy_index):
 
     if enemy_index == 3 and game_difficulty == "невозможная":
         base_enemy["exp"] = 500
+    elif enemy_index == 4:
+        base_enemy["exp"] = 2000
+        base_enemy["gold"] = 1000
 
     enemy = {
         "name": base_enemy["name"],
@@ -1022,12 +1025,10 @@ def show_game_over():
     print("=" * 80)
     print('\t' * 5 + "= ИГРА ОКОНЧЕНА =")
     print("=" * 80)
-    print()
-    print_slow("Ваше путешествие по Хроноспирали завершилось.")
+    print_slow("\nВаше путешествие по Хроноспирали завершилось.")
     print_slow("Вы пали в бою, но ваша жертва не будет забыта.")
     print_slow("Возможно, в другой раз удача будет на вашей стороне...")
-    print()
-    print_slow("Попробуйте сыграть снова с другим классом или стратегией!")
+    print_slow("\nПопробуйте сыграть снова с другим классом или стратегией!")
     print_slow("Или выберите другую сложность, чтобы испытать себя по-новому.")
 
 
