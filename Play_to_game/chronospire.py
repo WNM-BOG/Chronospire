@@ -5,7 +5,6 @@ import os
 for file in os.listdir('.'):
     if 'wnm' in file.lower():
         os.rename(file, 'WNM.mp3')
-        print(f"Файл переименован в WNM.mp3")
         break
 
 player_name = ""
@@ -621,7 +620,8 @@ def enemy_attack_player(enemy):
 
 
 def battle(enemy_index):
-    global player_health, player_alive, player_gold
+    global player_health, player_alive, player_gold, chaos_second_phase
+    chaos_second_phase = True
 
     enemy = get_enemy(enemy_index)
     second_phase_activated = False
@@ -649,16 +649,32 @@ def battle(enemy_index):
             time.sleep(2)
 
             try:
-                if os.path.exists("C:Users\Иван\Documents\GitHub\Chronospire\Play_to_game\WNM.wav"):
-                    print_slow("Звучит древняя мелодия, пробуждающая что-то первозданное...")
-                    pygame.mixer.music.load("C:Users\Иван\Documents\GitHub\Chronospire\Play_to_game\WNM.wav")
-                    pygame.mixer.music.play(-1)
-                    music_started = True
-                else:
-                    print_slow("Эпическая музыка наполняет воздух...")
-            except Exception as e:
-                print(f"Не удалось воспроизвести музыку: {e}")
-                print_slow("Звуковые вибрации меняются, становясь более интенсивными...")
+                import pygame
+            except ImportError:
+                print("Pygame не установлен. Попытка установки...")
+                try:
+                    import subprocess
+                    import sys
+                    subprocess.check_call([sys.executable, "-m", "pip", "install", "pygame"])
+                    import pygame
+                    print("Pygame успешно установлен!")
+                except:
+                    print("Не удалось установить pygame. Продолжаем без музыки.")
+                    pygame = None
+
+            if pygame:
+                try:
+                    pygame.mixer.init()
+                    music_file = "WNM.wav"
+                    if os.path.exists(music_file):
+                        pygame.mixer.music.load(music_file)
+                        pygame.mixer.music.play(-1)
+                        print("♫ Музыка битвы началась! ♫")
+                    else:
+                        print("Файл музыки WNM.wav не найден")
+                except Exception as e:
+                    print(f"Ошибка воспроизведения музыки: {e}")
+
             enemy["health"] = enemy["max_health"]
             enemy["attack"] = int(enemy["attack"] * 1.8)
             enemy["defense"] = int(enemy["defense"] * 1.5)
