@@ -4,6 +4,48 @@ import sys
 import os
 import pygame
 
+# В начале кода после импортов
+try:
+    import pygame
+
+    pygame.mixer.init()
+    print("Pygame mixer инициализирован")
+except ImportError:
+    pygame = None
+    print("Pygame не установлен")
+
+
+# Функция для проверки и воспроизведения музыки
+def play_chaos_music():
+    try:
+        # Проверяем разные возможные расположения файла
+        possible_paths = [
+            "WNM.mp3",
+            "./WNM.mp3",
+            os.path.join(os.path.dirname(__file__), "WNM.mp3")
+        ]
+
+        music_file = None
+        for path in possible_paths:
+            if os.path.exists(path):
+                music_file = path
+                print(f"Найден файл музыки: {path}")
+                break
+
+        if music_file:
+            pygame.mixer.music.load(music_file)
+            pygame.mixer.music.set_volume(0.7)  # Устанавливаем громкость
+            pygame.mixer.music.play(-1)  # Зацикливание
+            print("Музыка второй фазы запущена")
+            return True
+        else:
+            print("Файл WNM.mp3 не найден в папке с игрой")
+            return False
+
+    except Exception as e:
+        print(f"Ошибка воспроизведения музыки: {e}")
+        return False
+
 player_name = ""
 player_class = ""
 player_level = 1
