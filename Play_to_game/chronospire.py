@@ -2,6 +2,7 @@ import random
 import time
 import sys
 import os
+import pygame
 
 player_name = ""
 player_class = ""
