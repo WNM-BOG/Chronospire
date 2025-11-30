@@ -4,4 +4,3 @@ for file in os.listdir('.'):
         os.rename(file, 'WNM.mp3')
         print(f"Файл переименован в WNM.mp3")
         input()
-        break
