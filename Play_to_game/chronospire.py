@@ -2,10 +2,6 @@ import random
 import time
 import sys
 import os
-for file in os.listdir('.'):
-    if 'wnm' in file.lower():
-        os.rename(file, 'WNM.mp3')
-        break
 
 player_name = ""
 player_class = ""
@@ -96,16 +92,16 @@ items = {
                   "description": "Острое клинковое оружие, увеличивает атаку на 15", "price": 200},
     "посох_мага": {"name": "Посох мага", "type": "оружие", "effect": "attack", "value": 20,
                    "description": "Древний посох, усиливающий магические способности, увеличивает атаку на 20",
-                   "price": 300},
-    "щит_защиты": {"name": "Щит защиты", "type": "броня", "effect": "defense", "value": 15,
-                   "description": "Прочный щит, увеличивает защиту на 15", "price": 250},
+                   "price": 250},
+    "щит_защиты": {"name": "Щит защиты", "type": "броня", "effect": "defense", "value": 25,
+                   "description": "Прочный щит, увеличивает защиту на 25", "price": 250},
     "эликсир_богов": {"name": "Эликсир богов", "type": "зелье", "effect": "heal", "value": 200,
                       "description": "Легендарный эликсир, восстанавливающий 200 единиц здоровья", "price": 200},
     "плащ_теней": {"name": "Плащ теней", "type": "броня", "effect": "dodge", "value": 10,
                    "description": "Плащ, сотканный из теней, увеличивает уклонение на 10%", "price": 250},
-    "кольцо_могущества": {"name": "Кольцо могущества", "type": "оружие", "effect": "attack", "value": 25,
+    "кольцо_могущества": {"name": "Кольцо могущества", "type": "оружие", "effect": "attack", "value": 35,
                           "description": "Древнее кольцо, наделяющее владельца невероятной силой", "price": 400},
-    "артефакт_хаоса": {"name": "Артефакт Хаоса", "type": "оружие", "effect": "attack", "value": 40,
+    "артефакт_хаоса": {"name": "Артефакт Хаоса", "type": "оружие", "effect": "attack", "value": 50,
                        "description": "Древний артефакт, содержащий силу Первозданного Хаоса", "price": 600}
 }
 
@@ -121,7 +117,6 @@ base_enemies = [
     {"name": "Первозданный Хаос", "health": 400, "attack": 50, "defense": 30, "exp": 0, "gold": 666,
      "description": "Существо, существовавшее до рождения времени. Его сила не поддается пониманию смертных."}
 ]
-
 
 def get_enemy(enemy_index):
     base_enemy = base_enemies[enemy_index].copy()
@@ -647,35 +642,8 @@ def battle(enemy_index):
             print_slow("\nГолос из ниоткуда: 'Ты видел лишь тень моей силы...'")
             print_slow("'Пришло время показать тебе истинную сущность хаоса.'")
             time.sleep(2)
-
-            try:
-                import pygame
-            except ImportError:
-                print("Pygame не установлен. Попытка установки...")
-                try:
-                    import subprocess
-                    import sys
-                    subprocess.check_call([sys.executable, "-m", "pip", "install", "pygame"])
-                    import pygame
-                    print("Pygame успешно установлен!")
-                except:
-                    print("Не удалось установить pygame. Продолжаем без музыки.")
-                    pygame = None
-
-            if pygame:
-                try:
-                    pygame.mixer.init()
-                    music_file = "WNM.wav"
-                    if os.path.exists(music_file):
-                        pygame.mixer.music.load(music_file)
-                        pygame.mixer.music.play(-1)
-                        print("♫ Музыка битвы началась! ♫")
-                    else:
-                        print("Файл музыки WNM.wav не найден")
-                except Exception as e:
-                    print(f"Ошибка воспроизведения музыки: {e}")
-
-            enemy["health"] = enemy["max_health"]
+            enemy["health"] = int(enemy["max_health"] * 8.3325)
+            enemy["max_health"] = int(enemy["max_health"] * 8.3325)
             enemy["attack"] = int(enemy["attack"] * 1.8)
             enemy["defense"] = int(enemy["defense"] * 1.5)
             enemy["name"] = "Пробужденный Первозданный Хаос"
@@ -728,7 +696,7 @@ def battle(enemy_index):
         print(f"\nХод {enemy['name']}...")
         time.sleep(1)
 
-        if second_phase_activated and random.random() < 0.3:  # 30% шанс особой атаки
+        if second_phase_activated and random.random() < 0.3:
             attack_type = random.choice(["reality", "time", "chaos"])
 
             if attack_type == "reality":
