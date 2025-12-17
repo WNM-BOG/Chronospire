@@ -26,6 +26,8 @@ equipped_weapon = None
 equipped_armor = None
 player_gold = 100
 temp_attack_bonus = 0
+temp_dodge_bonus = 0
+dodge_active = False
 
 difficulty_multipliers = {
     "лёгкая": {"player_health": 1.5, "player_attack": 1.3, "player_defense": 1.3,
@@ -265,9 +267,11 @@ def get_total_defense():
 
 
 def get_total_dodge():
+    global temp_dodge_bonus
     total = player_dodge
     if equipped_armor and equipped_armor["effect"] == "dodge":
         total += equipped_armor["value"]
+    total += temp_dodge_bonus
     return total
 
 
@@ -607,9 +611,15 @@ def player_attack_enemy(enemy):
 
 
 def enemy_attack_player(enemy):
-    global player_health
+    global player_health, dodge_active
 
-    if random.randint(1, 100) <= get_total_dodge():
+    if dodge_active:
+        dodge_chance = get_total_dodge() + 20
+        print(f"Вы сконцентрированы на уклонении! Шанс уклонения: {dodge_chance}%")
+    else:
+        dodge_chance = get_total_dodge()
+
+    if random.randint(1, 100) <= dodge_chance:
         print("Вы увернулись от атаки врага!")
         return
 
@@ -620,12 +630,14 @@ def enemy_attack_player(enemy):
 
 
 def battle(enemy_index):
-    global player_health, player_alive, player_gold, temp_attack_bonus, player_dodge
+    global player_health, player_alive, player_gold, temp_attack_bonus, player_dodge, temp_dodge_bonus, dodge_active
 
     enemy = get_enemy(enemy_index)
     second_phase_activated = False
 
     temp_attack_bonus = 0
+    temp_dodge_bonus = 0
+    dodge_active = False
 
     print("\n" + "⚔" * 35)
     print(f"\t⚔ БОЙ С {enemy['name'].upper()}! ⚔")
@@ -635,6 +647,9 @@ def battle(enemy_index):
     print("⚔" * 35)
 
     while player_health > 0 and enemy["health"] > 0:
+        temp_dodge_bonus = 0
+        dodge_active = False
+
         print(f"\nВаше здоровье: {player_health}/{player_max_health}")
         print(f"Здоровье {enemy['name']}: {enemy['health']}/{enemy['max_health']}")
         if (enemy_index == 4 and not second_phase_activated and
@@ -663,8 +678,9 @@ def battle(enemy_index):
         print("\t1: Атаковать (стандартная атака)")
         print("\t2: Использовать предмет (восстановить здоровье или усилить характеристики)")
         print("\t3: Осмотреть противника (узнать характеристики врага)")
+        print("\t4: Сконцентрироваться на уклонении (+20% к уклонению на 1 ход)")
 
-        choice = input("Ваш выбор (1-3): ")
+        choice = input("Ваш выбор (1-4): ")
 
         if choice == "1":
             player_attack_enemy(enemy)
@@ -684,6 +700,10 @@ def battle(enemy_index):
             print(f"\tОпыт за победу: {enemy['exp']}")
             print(f"\tЗолото за победу: {enemy['gold']}")
             continue
+        elif choice == "4":
+            dodge_active = True
+            temp_dodge_bonus = 20
+            print("Вы концентрируетесь на уклонении! Ваше уклонение увеличено на 20% на следующий ход врага!")
         else:
             print("Неверный выбор! Вы пропускаете ход.")
 
@@ -716,6 +736,8 @@ def battle(enemy_index):
             enemy_attack_player(enemy)
 
     temp_attack_bonus = 0
+    temp_dodge_bonus = 0
+    dodge_active = False
 
     if player_health <= 0:
         print("\nВы пали в бою...")
