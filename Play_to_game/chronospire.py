@@ -25,6 +25,7 @@ hidden_boss_defeated = False
 equipped_weapon = None
 equipped_armor = None
 player_gold = 100
+temp_attack_bonus = 0
 
 difficulty_multipliers = {
     "лёгкая": {"player_health": 1.5, "player_attack": 1.3, "player_defense": 1.3,
@@ -118,6 +119,7 @@ base_enemies = [
      "description": "Существо, существовавшее до рождения времени. Его сила не поддается пониманию смертных."}
 ]
 
+
 def get_enemy(enemy_index):
     base_enemy = base_enemies[enemy_index].copy()
     multiplier = difficulty_multipliers[game_difficulty]
@@ -140,6 +142,7 @@ def get_enemy(enemy_index):
     }
 
     return enemy
+
 
 def show_title():
     print("=" * 80)
@@ -247,7 +250,8 @@ def show_difficulty_info():
 
 
 def get_total_attack():
-    total = player_attack
+    global temp_attack_bonus
+    total = player_attack + temp_attack_bonus
     if equipped_weapon:
         total += equipped_weapon["value"]
     return total
@@ -319,7 +323,7 @@ def create_character():
     print("\t\tНачальные предметы: Посох мага")
     print("\n\t3: Ассасин - ловкий и хитрый воин, мастер уклонений")
     print("\t\tПреимущества: высокое уклонение, критический урон")
-    print("\t\tНачальные предметы: Плащ теней")
+    print("\t\tНачальные предметы: Плащ теней и Меч воина")
 
     class_choice = input("\nВаш выбор (1-3): ")
 
@@ -336,8 +340,6 @@ def create_character():
             base_attack += 25
             base_defense += 25
             base_dodge += 25
-        else:
-            pass
 
         player_health = int(base_health * multiplier["player_health"])
         player_max_health = player_health
@@ -358,8 +360,6 @@ def create_character():
             base_attack += 25
             base_defense += 25
             base_dodge += 25
-        else:
-            pass
 
         player_health = int(base_health * multiplier["player_health"])
         player_max_health = player_health
@@ -381,13 +381,13 @@ def create_character():
             base_attack += 25
             base_defense += 25
             base_dodge += 25
-        else:
-            pass
+
         player_health = int(base_health * multiplier["player_health"])
         player_max_health = player_health
         player_attack = int(base_attack * multiplier["player_attack"])
         player_defense = int(base_defense * multiplier["player_defense"])
         player_dodge = base_dodge
+        equipped_weapon = items["меч_воина"]
         equipped_armor = items["плащ_теней"]
         player_inventory.append(items["зелье_здоровья"])
 
@@ -492,6 +492,8 @@ def add_gold(amount):
 
 
 def use_item():
+    global temp_attack_bonus, player_health, player_max_health
+
     while True:
         if not player_inventory:
             print("Ваш инвентарь пуст! Найдите предметы в сундуках")
@@ -514,17 +516,19 @@ def use_item():
 
                 if item["type"] == "зелье":
                     if item["effect"] == "heal":
+                        if player_health == player_max_health:
+                            print("Ваше здоровье уже полное! Зелье не использовано.")
+                            return False
                         heal_amount = item["value"]
-                        global player_health, player_max_health
                         player_health = min(player_max_health, player_health + heal_amount)
                         print(f"Использовано {item['name']}! Восстановлено {heal_amount} здоровья.")
+                        player_inventory.remove(item)
+                        return True
                     elif item["effect"] == "attack":
-                        global player_attack
-                        player_attack += item["value"]
+                        temp_attack_bonus += item["value"]
                         print(f"Использовано {item['name']}! Атака увеличена на {item['value']} до конца боя.")
-
-                    player_inventory.remove(item)
-                    return True
+                        player_inventory.remove(item)
+                        return True
                 else:
                     print(f"{item['name']} нельзя использовать напрямую. Это экипировка.")
                     return False
@@ -603,23 +607,25 @@ def player_attack_enemy(enemy):
 
 
 def enemy_attack_player(enemy):
+    global player_health
+
     if random.randint(1, 100) <= get_total_dodge():
         print("Вы увернулись от атаки врага!")
         return
 
     damage = enemy["attack"] - calculate_defense() // 2
     damage = max(1, damage)
-    global player_health
     player_health -= damage
     print(f"{enemy['name']} наносит вам {damage} урона!")
 
 
 def battle(enemy_index):
-    global player_health, player_alive, player_gold, chaos_second_phase
-    chaos_second_phase = True
+    global player_health, player_alive, player_gold, temp_attack_bonus, player_dodge
 
     enemy = get_enemy(enemy_index)
     second_phase_activated = False
+
+    temp_attack_bonus = 0
 
     print("\n" + "⚔" * 35)
     print(f"\t⚔ БОЙ С {enemy['name'].upper()}! ⚔")
@@ -633,7 +639,6 @@ def battle(enemy_index):
         print(f"Здоровье {enemy['name']}: {enemy['health']}/{enemy['max_health']}")
         if (enemy_index == 4 and not second_phase_activated and
                 enemy["health"] <= enemy["max_health"] * 0.5):
-
             print_slow("\nЧто-то изменилось... Воздух стал гуще, реальность искажается.")
             print_slow("Первозданный Хаос медленно поднимается, его форма начинает меняться.")
             print_slow("Ты чувствуешь, как дрожит само пространство вокруг.")
@@ -657,26 +662,18 @@ def battle(enemy_index):
         print("\nВыберите действие:")
         print("\t1: Атаковать (стандартная атака)")
         print("\t2: Использовать предмет (восстановить здоровье или усилить характеристики)")
-        print("\t3: Попытаться уклониться (шанс: {}%)".format(get_total_dodge()))
-        print("\t4: Осмотреть противника (узнать характеристики врага)")
+        print("\t3: Осмотреть противника (узнать характеристики врага)")
 
-        choice = input("Ваш выбор (1-4): ")
+        choice = input("Ваш выбор (1-3): ")
 
         if choice == "1":
             player_attack_enemy(enemy)
         elif choice == "2":
             if use_item():
-                continue
-            else:
-                continue
-        elif choice == "3":
-            dodge_success = random.randint(1, 100) <= get_total_dodge()
-            if dodge_success:
-                print("Вы приготовились уворачиваться от следующей атаки!")
                 pass
             else:
-                print("Вам не удалось сконцентрироваться для уклонения!")
-        elif choice == "4":
+                pass
+        elif choice == "3":
             print(f"\nИнформация о {enemy['name']}:")
             print(f"\tЗдоровье: {enemy['health']}/{enemy['max_health']}")
             print(f"\tАтака: {enemy['attack']}")
@@ -707,7 +704,6 @@ def battle(enemy_index):
 
             elif attack_type == "time":
                 print_slow("⏳ Время замедляется вокруг вас...")
-                global player_dodge
                 player_dodge = max(0, player_dodge - 15)
                 print("Ваше уклонение уменьшено на 15%!")
 
@@ -718,6 +714,8 @@ def battle(enemy_index):
                 print(f"Хаос поглощает вашу энергию и восстанавливает {heal_amount} здоровья!")
         else:
             enemy_attack_player(enemy)
+
+    temp_attack_bonus = 0
 
     if player_health <= 0:
         print("\nВы пали в бою...")
@@ -776,10 +774,19 @@ def shop():
                 item = items[item_key]
 
                 if player_gold >= item["price"]:
-                    player_gold -= item["price"]
-                    player_inventory.append(item)
-                    print(f"🏪 Вы купили {item['name']} за {item['price']} золота!")
-                    print(f"🏪 Осталось золота: {player_gold} 💰")
+                    owned_names = [inv_item["name"] for inv_item in player_inventory]
+                    if equipped_weapon:
+                        owned_names.append(equipped_weapon["name"])
+                    if equipped_armor:
+                        owned_names.append(equipped_armor["name"])
+
+                    if item["name"] in owned_names:
+                        print(f"У вас уже есть {item['name']}!")
+                    else:
+                        player_gold -= item["price"]
+                        player_inventory.append(item)
+                        print(f"🏪 Вы купили {item['name']} за {item['price']} золота!")
+                        print(f"🏪 Осталось золота: {player_gold} 💰")
                 else:
                     print("Недостаточно золота!")
             else:
@@ -789,6 +796,8 @@ def shop():
 
 
 def open_chest(bonus=False):
+    global player_health, player_max_health
+
     print("Вы нашли сундук с сокровищами!" if not bonus else "Вы нашли бонусный сундук!")
 
     owned_items = [item["name"] for item in player_inventory]
@@ -819,11 +828,13 @@ def open_chest(bonus=False):
         use_now = input("Использовать сейчас? (y/n): ").lower()
         if use_now == 'y' or use_now == 'д':
             if found_item["effect"] == "heal":
-                heal_amount = found_item["value"]
-                global player_health, player_max_health
-                player_health = min(player_max_health, player_health + heal_amount)
-                print(f"Использовано! Восстановлено {heal_amount} здоровья.")
-                player_inventory.remove(found_item)
+                if player_health == player_max_health:
+                    print("Ваше здоровье уже полное! Зелье сохранено в инвентаре.")
+                else:
+                    heal_amount = found_item["value"]
+                    player_health = min(player_max_health, player_health + heal_amount)
+                    print(f"Использовано! Восстановлено {heal_amount} здоровья.")
+                    player_inventory.remove(found_item)
 
 
 def explore_location():
@@ -928,7 +939,7 @@ def explore_location():
 
 
 def show_travel_options():
-    global current_location
+    global current_location, game_running
 
     while True:
         print()
@@ -991,8 +1002,13 @@ def show_travel_options():
                 print("У вас нет свободных очков характеристик для распределения.")
         elif choice == "8":
             shop()
+        elif choice == "9":
+            if game_difficulty == "невозможная" and final_boss_defeated and not hidden_boss_defeated:
+                current_location = 7
+                break
+            else:
+                print("Эта опция сейчас недоступна.")
         elif choice == "0":
-            global game_running
             confirm = input("Вы уверены, что хотите выйти? (y/n): ").lower()
             if confirm == 'y' or confirm == 'д':
                 print("Спасибо за игру! До свидания!")
