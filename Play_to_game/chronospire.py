@@ -685,10 +685,11 @@ def battle(enemy_index):
         if choice == "1":
             player_attack_enemy(enemy)
         elif choice == "2":
-            if use_item():
+            item_used = use_item()
+            if item_used:
                 pass
             else:
-                pass
+                continue
         elif choice == "3":
             print(f"\nИнформация о {enemy['name']}:")
             print(f"\tЗдоровье: {enemy['health']}/{enemy['max_health']}")
@@ -796,19 +797,21 @@ def shop():
                 item = items[item_key]
 
                 if player_gold >= item["price"]:
-                    owned_names = [inv_item["name"] for inv_item in player_inventory]
-                    if equipped_weapon:
-                        owned_names.append(equipped_weapon["name"])
-                    if equipped_armor:
-                        owned_names.append(equipped_armor["name"])
+                    if item["type"] in ["оружие", "броня"]:
+                        owned_names = [inv_item["name"] for inv_item in player_inventory]
+                        if equipped_weapon:
+                            owned_names.append(equipped_weapon["name"])
+                        if equipped_armor:
+                            owned_names.append(equipped_armor["name"])
 
-                    if item["name"] in owned_names:
-                        print(f"У вас уже есть {item['name']}!")
-                    else:
-                        player_gold -= item["price"]
-                        player_inventory.append(item)
-                        print(f"🏪 Вы купили {item['name']} за {item['price']} золота!")
-                        print(f"🏪 Осталось золота: {player_gold} 💰")
+                        if item["name"] in owned_names:
+                            print(f"У вас уже есть {item['name']}!")
+                            continue
+
+                    player_gold -= item["price"]
+                    player_inventory.append(item)
+                    print(f"🏪 Вы купили {item['name']} за {item['price']} золота!")
+                    print(f"🏪 Осталось золота: {player_gold} 💰")
                 else:
                     print("Недостаточно золота!")
             else:
